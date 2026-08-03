@@ -1,5 +1,7 @@
-import { useState, type ReactNode, type SubmitEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type ReactNode, type SubmitEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../api/axios'
 import logo from '../../assets/login-logo.png'
 import loginArt from '../../assets/login-graphic.png'
 
@@ -7,7 +9,7 @@ import loginArt from '../../assets/login-graphic.png'
 
 function IconUser({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className={className}>
       <circle cx="12" cy="8" r="3.4" />
       <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" strokeLinecap="round" />
     </svg>
@@ -15,19 +17,20 @@ function IconUser({ className = 'h-4 w-4' }: { className?: string }) {
 }
 
 function IconKey({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
+  return (  
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className={className}>
       <circle cx="7" cy="14" r="3.2" />
       <path d="M9.3 11.8 18 3.1M15.4 5.7l2 2M13 8.1l2 2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
-function IconLock({ className = 'h-4 w-4' }: { className?: string }) {
+function UserTypeIcon({ className = 'h-7 w-7' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>
-      <rect x="5" y="11" width="14" height="9" rx="2" />
-      <path d="M8 11V7.5a4 4 0 0 1 8 0V11" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} className={className}>
+      <path d="M7 10a3 3 0 1 1 6 0 3 3 0 0 1-6 0" />
+      <path d="M4 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" />
+      <path d="M15 9h5M15 13h5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -48,23 +51,114 @@ function CircuitPattern({ className = '' }: { className?: string }) {
   )
 }
 
+// Each glow's color is matched to its own badge (Analytics=gold,
+// Automation=copper, Banking/ACCDG=burnt-orange, Operations=olive,
+// Messaging=violet, Banking=crimson, Inventory=green, CRM=blue) and pushed
+// more saturated/distinct than the original set, since the copper/tan/olive
+// trio used to sit too close together to tell apart at a glance.
+const BADGE_GLOWS: { top: string; left: string; color: string; delay: string }[] = [
+  { top: '17.2%', left: '55.6%', color: '#fbbf24', delay: '0s' },
+  { top: '27.1%', left: '76.0%', color: '#c2761f', delay: '0.3s' },
+  { top: '49.7%', left: '83.9%', color: '#92400e', delay: '0.6s' },
+  { top: '72.3%', left: '76.0%', color: '#65a30d', delay: '0.9s' },
+  { top: '83.2%', left: '55.6%', color: '#7c3aed', delay: '1.2s' },
+  { top: '72.3%', left: '26.1%', color: '#dc2626', delay: '1.5s' },
+  { top: '49.7%', left: '17.0%', color: '#16a34a', delay: '1.8s' },
+  { top: '27.1%', left: '26.1%', color: '#1d4ed8', delay: '2.1s' },
+]
+
 /* ---------------------------------- form ---------------------------------- */
+
+type AuthTone = 'cream' | 'plain' | 'brand'
+
+function toneClasses(tone: AuthTone) {
+  return tone === 'cream'
+    ? 'border-amber-300 bg-amber-50 focus:border-amber-500 focus:ring-amber-200'
+    : tone === 'brand'
+      ? 'border-blue-300 bg-gradient-to-r from-sky-50 to-blue-100 focus:border-blue-500 focus:ring-blue-200'
+      : 'border-blue-100 bg-blue-50 focus:border-blue-400 focus:ring-blue-200'
+}
 
 interface AuthInputProps {
   placeholder: string
   type?: string
   icon: ReactNode
-  tone?: 'cream' | 'plain'
+  tone?: AuthTone
   value: string
   onChange: (value: string) => void
   name: string
 }
 
+function AuthDropdown({
+  placeholder,
+  icon,
+  tone = 'plain',
+  value,
+  onChange,
+  name,
+  options,
+}: {
+  placeholder: string
+  icon: ReactNode
+  tone?: AuthTone
+  value: string
+  onChange: (value: string) => void
+  name: string
+  options: string[]
+}) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [open])
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <input type="hidden" name={name} value={value} />
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`flex w-full items-center justify-between rounded-full border px-5 py-3 text-sm font-medium outline-none transition focus:ring-4 ${toneClasses(tone)} ${value ? 'text-slate-800' : 'text-slate-500'}`}
+      >
+        <span className="truncate">{value || placeholder}</span>
+        <span className="ml-2 flex shrink-0 items-center text-slate-900">{icon}</span>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white py-1.5 shadow-xl">
+          {options.length === 0 ? (
+            <p className="px-4 py-2.5 text-sm text-slate-400">No entities available yet</p>
+          ) : (
+            options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => {
+                  onChange(option)
+                  setOpen(false)
+                }}
+                className={`block w-full px-4 py-2.5 text-left text-sm transition ${
+                  option === value ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {option}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AuthInput({ placeholder, type = 'text', icon, tone = 'plain', value, onChange, name }: AuthInputProps) {
-  const toneClass =
-    tone === 'cream'
-      ? 'border-amber-200 bg-amber-50 focus:border-amber-400 focus:ring-amber-200'
-      : 'border-slate-200 bg-white focus:border-teal-400 focus:ring-teal-200'
+  const toneClass = toneClasses(tone)
 
   return (
     <div className="relative">
@@ -74,9 +168,10 @@ function AuthInput({ placeholder, type = 'text', icon, tone = 'plain', value, on
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`w-full rounded-xl border px-4 py-3 pr-11 text-sm text-slate-700 outline-none transition focus:ring-4 ${toneClass}`}
+        autoComplete="off"
+        className={`w-full rounded-full border px-5 py-3 pr-11 text-sm font-medium text-slate-800 placeholder:text-slate-500 outline-none transition focus:ring-4 ${toneClass}`}
       />
-      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">{icon}</span>
+      <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-900">{icon}</span>
     </div>
   )
 }
@@ -87,6 +182,15 @@ export function LoginModule() {
   const [password, setPassword] = useState('')
   const [masterEntity, setMasterEntity] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+
+  const { data: masterEntities = [] } = useQuery({
+    queryKey: ['master-entities'],
+    queryFn: async () => {
+      const response = await api.get('/master-entities')
+      return response.data as string[]
+    },
+    retry: false,
+  })
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -108,21 +212,49 @@ export function LoginModule() {
             {/* graphic panel */}
             <div className="relative order-1 overflow-hidden lg:order-2 lg:w-[57%]">
               <img src={loginArt} alt="" className="h-64 w-full object-cover lg:h-full" />
+              {BADGE_GLOWS.map((badge, index) => (
+                <span
+                  key={index}
+                  className="pointer-events-none absolute hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[3px] lg:block lg:h-[3.6rem] lg:w-[3.6rem] animate-[badge-glow_2.6s_ease-in-out_infinite]"
+                  style={{
+                    top: badge.top,
+                    left: badge.left,
+                    background: `radial-gradient(circle, transparent 58%, ${badge.color} 78%, transparent 100%)`,
+                    animationDelay: badge.delay,
+                  }}
+                />
+              ))}
+              {BADGE_GLOWS.map((badge, index) => (
+                <span
+                  key={`pumpkin-${index}`}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] lg:block animate-[pumpkin-pop_2.6s_ease-in-out_infinite]"
+                  style={{
+                    top: badge.top,
+                    left: badge.left,
+                    marginTop: '-1.7rem',
+                    marginLeft: '1.7rem',
+                    animationDelay: badge.delay,
+                  }}
+                >
+                  🎃
+                </span>
+              ))}
             </div>
 
             {/* form panel */}
             <div className="order-2 flex flex-col justify-center px-8 py-8 sm:px-10 lg:order-1 lg:w-[43%] lg:py-10">
-              <div className="mb-6">
-                <img src={logo} alt="ECUENTA - Financial Accounting CRM" className="h-16 w-auto sm:h-20 lg:h-24" />
+              <div className="mb-2 flex -translate-y-[20%] justify-center">
+                <img src={logo} alt="ECUENTA - Financial Accounting CRM" className="h-10 w-auto sm:h-12 lg:h-14" />
               </div>
 
-              <h1 className="mb-4 text-xl font-semibold text-slate-800">Sign In to your Account</h1>
+              <h1 className="mb-6 text-center text-xl font-semibold text-slate-800">Sign In to your Account</h1>
 
               <form onSubmit={handleSubmit} className="space-y-3">
                 <AuthInput
                   name="username"
-                  placeholder="Vox_admina"
-                  icon={<IconUser />}
+                  placeholder="username"
+                  icon={<IconUser className="h-7 w-7" />}
                   value={username}
                   onChange={setUsername}
                 />
@@ -130,17 +262,18 @@ export function LoginModule() {
                   name="password"
                   type="password"
                   placeholder="Password"
-                  icon={<IconKey />}
-                  tone="cream"
+                  icon={<IconKey className="h-7 w-7" />}
                   value={password}
                   onChange={setPassword}
                 />
-                <AuthInput
+                <AuthDropdown
                   name="masterEntity"
                   placeholder="Master entity"
-                  icon={<IconLock />}
+                  icon={<UserTypeIcon className="h-7 w-7" />}
+                  tone="brand"
                   value={masterEntity}
                   onChange={setMasterEntity}
+                  options={masterEntities}
                 />
 
                 <label className="flex items-center gap-2 text-sm text-slate-500">
@@ -155,18 +288,11 @@ export function LoginModule() {
 
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-gradient-to-r from-teal-600 to-blue-600 py-3 text-sm font-bold tracking-wide text-white shadow-lg shadow-blue-600/30 transition hover:from-teal-500 hover:to-blue-500"
+                  className="w-full rounded-full bg-gradient-to-r from-sky-400 via-sky-600 to-blue-900 py-3 text-sm font-bold tracking-wide text-white shadow-lg shadow-blue-900/30 transition hover:from-sky-300 hover:via-sky-500 hover:to-blue-800"
                 >
                   SIGN IN
                 </button>
               </form>
-
-              <p className="mt-4 text-center text-sm text-slate-500">
-                Not registered yet?{' '}
-                <Link to="/register" className="font-medium text-teal-600 hover:text-teal-500">
-                  Create an account
-                </Link>
-              </p>
             </div>
           </div>
         </div>

@@ -1,14 +1,16 @@
-import { appTheme } from '../../themes/theme'
+import { useAuth } from '../../features/auth/AuthContext'
+import { useDashboardSummary } from '../../features/home/home.queries'
+import { HomeOverview } from '../../features/home/components/HomeOverview'
 
 export function DashboardModule() {
+  const { user } = useAuth()
+  const { data: summary, isError } = useDashboardSummary()
+
   return (
-    <section className={`${appTheme.shell} space-y-6`}>
-      <div>
-        <p className={`text-sm font-semibold uppercase tracking-[0.27em] ${appTheme.accent}`}>
-          Dashboard
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold text-white">Dashboard</h1>
-      </div>
-    </section>
+    <div>
+      {isError && <p className="text-sm text-danger">Could not load the dashboard.</p>}
+      {!summary && !isError && <p className="text-sm text-text-muted">Loading…</p>}
+      {summary && <HomeOverview username={user?.login || 'User'} summary={summary} />}
+    </div>
   )
 }
