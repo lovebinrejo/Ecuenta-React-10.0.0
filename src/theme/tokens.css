@@ -48,9 +48,11 @@
   --color-input-bg: #ffffff;
   --color-border: #e5e7eb;
   --color-input-border: #d1d5db;
-  --color-text: #111827;
-  --color-text-muted: #6b7280;
-  --color-text-faint: #9ca3af;
+  /* Darkened 40% off the original light-mode values (#111827/#6b7280/#9ca3af)
+     project-wide, for stronger text contrast. */
+  --color-text: #0a0e17;
+  --color-text-muted: #40444d;
+  --color-text-faint: #5e6269;
 
   /* Sidebar icon-rail background — distinct from card surfaces. */
   --color-rail-bg: #eef1f6;

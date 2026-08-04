@@ -26,10 +26,10 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      <Sidebar open={sidebarOpen} />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((o) => !o)} onLogout={handleLogout} />
+    <div className="h-screen flex flex-col overflow-hidden">
+      <Navbar sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((o) => !o)} onLogout={handleLogout} />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar open={sidebarOpen} />
         <main className="flex-1 overflow-y-auto soft-scrollbar p-6 bg-white dark:bg-gray-950">{children}</main>
       </div>
     </div>

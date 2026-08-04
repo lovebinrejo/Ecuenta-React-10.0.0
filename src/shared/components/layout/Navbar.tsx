@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronsLeft, ChevronsRight, Search, Sun, Moon, BarChart3, CreditCard, ChefHat, Settings, Bell, CalendarDays, LogIn, LogOut, ChevronDown } from 'lucide-react'
+import { Menu, Search, Sun, Moon, BarChart3, CreditCard, ChefHat, Settings, Bell, CalendarDays, LogIn, LogOut, ChevronDown } from 'lucide-react'
 import { useTheme } from '../../../context/ThemeContext'
 import { useAuth, type AuthUser } from '../../../features/auth/AuthContext'
 import { ROUTES } from '../../../routes'
@@ -10,6 +10,9 @@ import { NotificationsPanel } from './navbar/NotificationsPanel'
 import { DailySummaryPanel } from './navbar/DailySummaryPanel'
 import { ClockInPanel } from './navbar/ClockInPanel'
 import { useAttendanceStatus } from '../../../features/attendance/attendance.queries'
+import { Avatar } from '../Avatar'
+import logoIcon from '../../../assets/log3.png'
+import logoFull from '../../../assets/login-logo.png'
 
 type PanelName = 'account' | 'settings' | 'notifications' | 'daily-summary' | 'clock' | null
 
@@ -74,14 +77,6 @@ function displayName(user: AuthUser | null) {
   return full || user?.login || 'User'
 }
 
-function initialsOf(user: AuthUser | null) {
-  const source = [user?.firstname, user?.lastname].filter(Boolean).join(' ') || user?.login || ''
-  const parts = source.split(/[^a-zA-Z0-9]+/).filter(Boolean)
-  const first = parts[0]?.[0] ?? ''
-  const second = parts[1]?.[0] ?? ''
-  return (first + second).toUpperCase() || '?'
-}
-
 // Icon row ported from the legacy htdocs/main.inc.php navbar, left to
 // right: Daily Summary, POS, Kitchen, Settings, Notifications, Events
 // (agenda), Clock In/Out. POS has no module built yet so it stays a plain
@@ -114,8 +109,27 @@ export function Navbar({ sidebarOpen, onToggleSidebar, onLogout }: { sidebarOpen
   return (
     <nav className="flex items-center justify-between h-14 px-4 gap-4 bg-rail-bg border-b border-black/10 dark:border-white/10">
       <div className="flex items-center gap-3 shrink-0">
-        <IconButton onClick={onToggleSidebar} title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'} tooltipAlign="start">
-          {sidebarOpen ? <ChevronsLeft size={18} /> : <ChevronsRight size={18} />}
+        {sidebarOpen ? (
+          <span className="flex h-8 items-center rounded-md dark:bg-white/90 dark:px-2 dark:py-1">
+            <img src={logoFull} alt="ECUENTA" className="h-full w-auto object-contain" />
+          </span>
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-md dark:bg-white/90 dark:p-1">
+            <img src={logoIcon} alt="ECUENTA" className="h-full w-full object-contain" />
+          </span>
+        )}
+        <IconButton
+          onClick={onToggleSidebar}
+          active={sidebarOpen}
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          tooltipAlign="start"
+          className="text-text"
+        >
+          <Menu
+            size={24}
+            strokeWidth={2.25}
+            className="transition-[filter] duration-200 group-hover/tip:[filter:drop-shadow(0_0_5px_var(--color-accent-teal-2))_drop-shadow(0_0_9px_var(--color-accent-cyan-2))]"
+          />
         </IconButton>
       </div>
 
@@ -199,15 +213,19 @@ export function Navbar({ sidebarOpen, onToggleSidebar, onLogout }: { sidebarOpen
         </div>
 
         <div className="relative ml-2" ref={openPanel === 'account' ? panelRef : undefined}>
-          <button type="button" onClick={() => togglePanel('account')} className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-surface-alt">
+          <button
+            type="button"
+            onClick={() => togglePanel('account')}
+            className="flex items-center gap-2.5 pl-2.5 pr-2 py-1.5 rounded-full hover:bg-surface-alt transition-colors"
+          >
             <span className="text-right leading-tight hidden sm:block">
               <span className="flex items-center gap-1 text-sm font-semibold text-text">
-                <span className="max-w-[110px] truncate">{displayName(user)}</span>
-                <ChevronDown size={14} />
+                <span className="max-w-[130px] truncate">{displayName(user)}</span>
+                <ChevronDown size={14} className="text-text-faint" />
               </span>
-              <span className="block text-xs text-text-faint">{user?.login}</span>
+              <span className="block text-xs text-text-faint truncate max-w-[130px]">{user?.login}</span>
             </span>
-            <span className="w-9 h-9 rounded-full bg-teal-500 text-white text-sm font-semibold flex items-center justify-center shrink-0">{initialsOf(user)}</span>
+            <Avatar photo={user?.photo} name={displayName(user)} size={38} />
           </button>
 
           {openPanel === 'account' && <AccountPanel user={user} onClose={closePanel} onLogout={onLogout} />}

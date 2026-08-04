@@ -5,6 +5,7 @@ import { AppShell } from './app/AppShell'
 import { queryClient } from './api/queryClient'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './features/auth/AuthContext'
+import { ProtectedRoute } from './features/auth/ProtectedRoute'
 import { LoginModule } from './modules/auth/LoginModule'
 import { DashboardModule } from './modules/dashboard/DashboardModule'
 import { UsersModule } from './modules/users/UsersModule'
@@ -53,6 +54,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginModule />} />
+              <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardModule />} />
@@ -86,6 +88,7 @@ function App() {
                 <Route path="/reports" element={<ReportsModule />} />
                 <Route path="/settings" element={<SettingsModule />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Route>
               </Route>
             </Routes>
           </BrowserRouter>

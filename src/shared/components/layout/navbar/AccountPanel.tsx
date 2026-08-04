@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { X, User, LogOut, FileText, MessageSquareText, BadgeCheck, Mail, Phone, ChevronRight } from 'lucide-react'
-import { useConsts } from '../../../../features/settings/settings.queries'
+import { useGeneralSettings, useEntities } from '../../../../features/settings/settings.queries'
 import type { AuthUser } from '../../../../features/auth/AuthContext'
+import { Avatar } from '../../Avatar'
+import { SwitchEntityModal } from './SwitchEntityModal'
 
 const CURRENCY_NAMES: Record<string, string> = { ZMW: 'Zambian Kwacha', USD: 'US Dollar', INR: 'Indian Rupee', GBP: 'British Pound', EUR: 'Euro' }
-
-const CONST_NAMES = ['MAIN_INFO_SOCIETE_NOM', 'MAIN_INFO_SIREN', 'ZRA_Branch_code', 'MAIN_INFO_SOCIETE_COUNTRY', 'MAIN_MONNAIE']
 
 function parseCountryLabel(value?: string) {
   if (!value) return '-'
@@ -13,19 +13,20 @@ function parseCountryLabel(value?: string) {
   return parts[parts.length - 1] || value
 }
 
-function initialsOf(name: string) {
-  const parts = (name || '').split(/[^a-zA-Z0-9]+/).filter(Boolean)
-  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
-}
-
 // Ports the legacy Navbar avatar dropdown's rich "My Account" panel.
-// Company/TPIN/Branch Code/Country/Currency read from useConsts (stubbed in
-// this project — see settings.queries.ts). TimeZone is hardcoded "UTC" and
-// Switch Entity offers only "Master entity", matching the source app's own
-// no-per-user-timezone / no-multi-entity-data convention.
+// Company/TPIN/Branch Code/Country/Currency/Switch Entity all read from the
+// real backend (GET /api/general/ and /api/entities/ — see
+// settings.queries.ts) — verified against the live PHP app's own "My
+// Account" offcanvas panel, field-for-field. TimeZone is "UTC" because the
+// backend itself reports it as a fixed value (not per-user-configurable),
+// not because we hardcoded it here. Picking a different entity opens
+// SwitchEntityModal rather than switching immediately — see that file for
+// why (no token-based entity-switch endpoint exists on the backend).
 export function AccountPanel({ user, onClose, onLogout }: { user: AuthUser | null; onClose: () => void; onLogout: () => void }) {
-  const { data: consts } = useConsts(CONST_NAMES)
+  const { data: settings } = useGeneralSettings()
+  const { data: entities } = useEntities()
   const [now, setNow] = useState(new Date())
+  const [pendingEntity, setPendingEntity] = useState<{ id: string; label: string } | null>(null)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -33,19 +34,24 @@ export function AccountPanel({ user, onClose, onLogout }: { user: AuthUser | nul
   }, [])
 
   const displayName = [user?.firstname, user?.lastname].filter(Boolean).join(' ') || user?.login || 'User'
-  const companyName = consts?.MAIN_INFO_SOCIETE_NOM || '-'
-  const tpin = consts?.MAIN_INFO_SIREN || '-'
-  const branchCode = consts?.ZRA_Branch_code || ''
-  const country = parseCountryLabel(consts?.MAIN_INFO_SOCIETE_COUNTRY)
-  const currencyCode = consts?.MAIN_MONNAIE || 'ZMW'
+  const companyName = settings?.app_name || '-'
+  const tpin = settings?.tpin || '-'
+  const branchCode = settings?.branch_code || ''
+  const country = parseCountryLabel(settings?.country)
+  const currencyCode = settings?.currency || 'ZMW'
   const currencyLabel = `${CURRENCY_NAMES[currencyCode] ?? currencyCode} (${currencyCode})`
-  const timeLabel = now.toLocaleTimeString('en-ZM', { hour: 'numeric', minute: '2-digit', second: '2-digit' })
+  const timeZoneLabel = settings?.timezone || 'UTC'
+  // Explicit timeZone here, not just the 'en-ZM' locale — locale only
+  // changes formatting conventions (AM/PM style, separators), not which
+  // timezone the clock reflects. Without it this silently renders in the
+  // *viewer's own* browser/OS timezone instead of the backend's.
+  const timeLabel = now.toLocaleTimeString('en-ZM', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: timeZoneLabel })
 
   return (
     <div className="absolute right-0 mt-1 w-96 max-h-[calc(100vh-4rem)] overflow-y-auto soft-scrollbar bg-surface border border-border rounded-lg shadow-xl z-30">
       <div className="flex items-start justify-between gap-2 p-4 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-11 h-11 rounded-lg bg-teal-500 text-white text-base font-semibold flex items-center justify-center shrink-0">{initialsOf(displayName)}</span>
+          <Avatar photo={user?.photo} name={displayName} size={48} rounded="lg" />
           <div className="min-w-0">
             <div className="text-sm font-semibold text-text truncate">{displayName}</div>
             <div className="text-xs text-text-faint truncate">({user?.login})</div>
@@ -80,18 +86,40 @@ export function AccountPanel({ user, onClose, onLogout }: { user: AuthUser | nul
           <dt className="text-text-muted">Currency</dt>
           <dd className="text-right text-text">{currencyLabel}</dd>
           <dt className="text-text-muted">TimeZone</dt>
-          <dd className="text-right text-text">UTC</dd>
-          <dt className="text-text-muted">{Intl.DateTimeFormat().resolvedOptions().timeZone}</dt>
+          <dd className="text-right text-text">{timeZoneLabel}</dd>
+          <dt className="text-text-muted">Time</dt>
           <dd className="text-right text-text tabular-nums">{timeLabel}</dd>
         </dl>
       </div>
 
       <div className="px-4 py-3 border-b border-border">
         <label className="block text-xs font-semibold uppercase tracking-wide text-text-faint mb-1">Switch Entity</label>
-        <select className="w-full h-9 px-3 rounded-md border border-input-border bg-blue-50 dark:bg-blue-950 text-text text-sm outline-none focus:ring-2 focus:ring-brand/30" disabled>
-          <option>Master entity</option>
+        <select
+          className="w-full h-9 px-3 rounded-md border border-input-border bg-blue-50 dark:bg-blue-950 text-text text-sm outline-none focus:ring-2 focus:ring-brand/30"
+          value={settings?.entity != null ? String(settings.entity) : ''}
+          onChange={(event) => {
+            const picked = entities?.find((e) => String(e.id) === event.target.value)
+            if (picked && String(picked.id) !== String(settings?.entity)) {
+              setPendingEntity({ id: String(picked.id), label: picked.label })
+            }
+          }}
+        >
+          {(entities ?? []).map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.label}
+            </option>
+          ))}
         </select>
       </div>
+
+      {pendingEntity && (
+        <SwitchEntityModal
+          entityId={pendingEntity.id}
+          entityLabel={pendingEntity.label}
+          loginName={user?.login ?? ''}
+          onClose={() => setPendingEntity(null)}
+        />
+      )}
 
       <div className="px-4 py-3 border-b border-border grid grid-cols-3 gap-2 text-center">
         {[

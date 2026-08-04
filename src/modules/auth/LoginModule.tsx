@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '../../api/axios'
+import { useAuth } from '../../features/auth/AuthContext'
+import { useEntities } from '../../features/settings/settings.queries'
 import logo from '../../assets/login-logo.png'
 import loginArt from '../../assets/login-graphic.png'
 
@@ -89,6 +89,11 @@ interface AuthInputProps {
   name: string
 }
 
+interface DropdownOption {
+  value: string
+  label: string
+}
+
 function AuthDropdown({
   placeholder,
   icon,
@@ -104,7 +109,7 @@ function AuthDropdown({
   value: string
   onChange: (value: string) => void
   name: string
-  options: string[]
+  options: DropdownOption[]
 }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -118,6 +123,8 @@ function AuthDropdown({
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [open])
 
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? value
+
   return (
     <div className="relative" ref={containerRef}>
       <input type="hidden" name={name} value={value} />
@@ -126,7 +133,7 @@ function AuthDropdown({
         onClick={() => setOpen((o) => !o)}
         className={`flex w-full items-center justify-between rounded-full border px-5 py-3 text-sm font-medium outline-none transition focus:ring-4 ${toneClasses(tone)} ${value ? 'text-slate-800' : 'text-slate-500'}`}
       >
-        <span className="truncate">{value || placeholder}</span>
+        <span className="truncate">{selectedLabel || placeholder}</span>
         <span className="ml-2 flex shrink-0 items-center text-slate-900">{icon}</span>
       </button>
 
@@ -137,17 +144,17 @@ function AuthDropdown({
           ) : (
             options.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 onClick={() => {
-                  onChange(option)
+                  onChange(option.value)
                   setOpen(false)
                 }}
                 className={`block w-full px-4 py-2.5 text-left text-sm transition ${
-                  option === value ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50'
+                  option.value === value ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                {option}
+                {option.label}
               </button>
             ))
           )}
@@ -178,23 +185,28 @@ function AuthInput({ placeholder, type = 'text', icon, tone = 'plain', value, on
 
 export function LoginModule() {
   const navigate = useNavigate()
+  const { login } = useAuth()
+  const { data: entities } = useEntities()
+  const entityOptions: DropdownOption[] = (entities ?? []).map((e) => ({ value: String(e.id), label: e.label }))
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [masterEntity, setMasterEntity] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const { data: masterEntities = [] } = useQuery({
-    queryKey: ['master-entities'],
-    queryFn: async () => {
-      const response = await api.get('/master-entities')
-      return response.data as string[]
-    },
-    retry: false,
-  })
-
-  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
-    navigate('/dashboard')
+    setError('')
+    setSubmitting(true)
+    try {
+      await login({ login: username, password, entity: masterEntity })
+      navigate('/dashboard', { replace: true })
+    } catch {
+      setError('Invalid login or password.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -273,8 +285,10 @@ export function LoginModule() {
                   tone="brand"
                   value={masterEntity}
                   onChange={setMasterEntity}
-                  options={masterEntities}
+                  options={entityOptions}
                 />
+
+                {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 
                 <label className="flex items-center gap-2 text-sm text-slate-500">
                   <input
@@ -288,9 +302,10 @@ export function LoginModule() {
 
                 <button
                   type="submit"
-                  className="w-full rounded-full bg-gradient-to-r from-sky-400 via-sky-600 to-blue-900 py-3 text-sm font-bold tracking-wide text-white shadow-lg shadow-blue-900/30 transition hover:from-sky-300 hover:via-sky-500 hover:to-blue-800"
+                  disabled={submitting}
+                  className="w-full rounded-full bg-gradient-to-r from-sky-400 via-sky-600 to-blue-900 py-3 text-sm font-bold tracking-wide text-white shadow-lg shadow-blue-900/30 transition hover:from-sky-300 hover:via-sky-500 hover:to-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  SIGN IN
+                  {submitting ? 'SIGNING IN…' : 'SIGN IN'}
                 </button>
               </form>
             </div>
