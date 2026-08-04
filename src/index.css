@@ -37,11 +37,11 @@ body {
   }
 }
 
-/* Halloween flourish: a small jack-o'-lantern pops in on each badge in sync
-   with that badge's own glow peak (badge-glow peaks at 50%), then fades —
-   staggered per-badge via the same animationDelay values, so pumpkins
-   appear one by one around the ring rather than all at once. */
-@keyframes pumpkin-pop {
+/* Each badge's own icon (analytics, accounting, banking, CRM, ...) pops in
+   sync with that badge's glow peak (badge-glow peaks at 50%), then fades —
+   staggered per-badge via the same animationDelay values, so icons appear
+   one by one around the ring rather than all at once. */
+@keyframes badge-pop {
   0%, 38%, 78%, 100% {
     transform: scale(0) rotate(-20deg);
     opacity: 0;

@@ -10,6 +10,32 @@ import { DashboardModule } from './modules/dashboard/DashboardModule'
 import { UsersModule } from './modules/users/UsersModule'
 import { ReportsModule } from './modules/reports/ReportsModule'
 import { SettingsModule } from './modules/settings/SettingsModule'
+import { ZraModule } from './modules/zra/ZraModule'
+import { SalesModule } from './modules/sales/SalesModule'
+import { PurchasesModule } from './modules/purchases/PurchasesModule'
+import { WarehousesModule } from './modules/warehouses/WarehousesModule'
+import { PayrollModule } from './modules/payroll/PayrollModule'
+import { LedgerModule } from './modules/ledger/LedgerModule'
+import { KitchenModule } from './modules/kitchen/KitchenModule'
+import { HotelModule } from './modules/hotel/HotelModule'
+import { UsersDashboardModule } from './modules/usersDashboard/UsersDashboardModule'
+import { CustomersListModule } from './modules/customers/CustomersListModule'
+import { CustomerCreateModule } from './modules/customers/CustomerCreateModule'
+import { VendorsListModule } from './modules/vendors/VendorsListModule'
+import { VendorCreateModule } from './modules/vendors/VendorCreateModule'
+import { OrdersListModule } from './modules/salesOrders/OrdersListModule'
+import { OrderCreateModule } from './modules/salesOrders/OrderCreateModule'
+import { ContractsListModule } from './modules/contracts/ContractsListModule'
+import { ContractCreateModule } from './modules/contracts/ContractCreateModule'
+import { QuotationsListModule } from './modules/quotations/QuotationsListModule'
+import { QuotationCreateModule } from './modules/quotations/QuotationCreateModule'
+import { InvoicesListModule } from './modules/invoices/InvoicesListModule'
+import { InvoiceCreateModule } from './modules/invoices/InvoiceCreateModule'
+import { PurchaseOrdersListModule } from './modules/purchaseOrders/PurchaseOrdersListModule'
+import { PurchaseOrderCreateModule } from './modules/purchaseOrders/PurchaseOrderCreateModule'
+import { SupplierProposalsListModule } from './modules/supplierProposals/SupplierProposalsListModule'
+import { SupplierProposalCreateModule } from './modules/supplierProposals/SupplierProposalCreateModule'
+import { ROUTES } from './routes'
 
 function AppLayout() {
   return (
@@ -30,6 +56,32 @@ function App() {
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardModule />} />
+                <Route path={ROUTES.home} element={<DashboardModule />} />
+                <Route path={ROUTES.zra} element={<ZraModule />} />
+                <Route path={ROUTES.salesDashboard} element={<SalesModule />} />
+                <Route path={ROUTES.purchasesDashboard} element={<PurchasesModule />} />
+                <Route path={ROUTES.warehouseDashboard} element={<WarehousesModule />} />
+                <Route path={ROUTES.payrollDashboard} element={<PayrollModule />} />
+                <Route path={ROUTES.ledgerDashboard} element={<LedgerModule />} />
+                <Route path={ROUTES.kitchenDashboard} element={<KitchenModule />} />
+                <Route path={ROUTES.bookingDashboard} element={<HotelModule />} />
+                <Route path={ROUTES.usersDashboard} element={<UsersDashboardModule />} />
+                <Route path={ROUTES.customerList} element={<CustomersListModule />} />
+                <Route path={ROUTES.customersCreate} element={<CustomerCreateModule />} />
+                <Route path={ROUTES.vendorList} element={<VendorsListModule />} />
+                <Route path={ROUTES.vendorCreate} element={<VendorCreateModule />} />
+                <Route path={ROUTES.orderList} element={<OrdersListModule />} />
+                <Route path={ROUTES.orderCreate} element={<OrderCreateModule />} />
+                <Route path={ROUTES.contractList} element={<ContractsListModule />} />
+                <Route path={ROUTES.contractCreate} element={<ContractCreateModule />} />
+                <Route path={ROUTES.quotationList} element={<QuotationsListModule />} />
+                <Route path={ROUTES.quotationCreate} element={<QuotationCreateModule />} />
+                <Route path={ROUTES.invoiceList} element={<InvoicesListModule />} />
+                <Route path={ROUTES.invoiceCreate} element={<InvoiceCreateModule />} />
+                <Route path={ROUTES.purchaseOrderList} element={<PurchaseOrdersListModule />} />
+                <Route path={ROUTES.purchaseOrderCreate} element={<PurchaseOrderCreateModule />} />
+                <Route path={ROUTES.supplierProposalList} element={<SupplierProposalsListModule />} />
+                <Route path={ROUTES.supplierProposalCreate} element={<SupplierProposalCreateModule />} />
                 <Route path="/users" element={<UsersModule />} />
                 <Route path="/reports" element={<ReportsModule />} />
                 <Route path="/settings" element={<SettingsModule />} />

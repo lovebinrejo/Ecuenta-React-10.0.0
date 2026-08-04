@@ -51,20 +51,20 @@ function CircuitPattern({ className = '' }: { className?: string }) {
   )
 }
 
-// Each glow's color is matched to its own badge (Analytics=gold,
-// Automation=copper, Banking/ACCDG=burnt-orange, Operations=olive,
+// Each glow's color and icon are matched to its own badge (Analytics=gold,
+// Automation=copper, Accounting=burnt-orange, Operations=olive,
 // Messaging=violet, Banking=crimson, Inventory=green, CRM=blue) and pushed
 // more saturated/distinct than the original set, since the copper/tan/olive
 // trio used to sit too close together to tell apart at a glance.
-const BADGE_GLOWS: { top: string; left: string; color: string; delay: string }[] = [
-  { top: '17.2%', left: '55.6%', color: '#fbbf24', delay: '0s' },
-  { top: '27.1%', left: '76.0%', color: '#c2761f', delay: '0.3s' },
-  { top: '49.7%', left: '83.9%', color: '#92400e', delay: '0.6s' },
-  { top: '72.3%', left: '76.0%', color: '#65a30d', delay: '0.9s' },
-  { top: '83.2%', left: '55.6%', color: '#7c3aed', delay: '1.2s' },
-  { top: '72.3%', left: '26.1%', color: '#dc2626', delay: '1.5s' },
-  { top: '49.7%', left: '17.0%', color: '#16a34a', delay: '1.8s' },
-  { top: '27.1%', left: '26.1%', color: '#1d4ed8', delay: '2.1s' },
+const BADGE_GLOWS: { top: string; left: string; color: string; delay: string; icon: string }[] = [
+  { top: '17.2%', left: '55.6%', color: '#fbbf24', delay: '0s', icon: '📊' },
+  { top: '27.1%', left: '76.0%', color: '#c2761f', delay: '0.3s', icon: '⚙️' },
+  { top: '49.7%', left: '83.9%', color: '#92400e', delay: '0.6s', icon: '🧾' },
+  { top: '72.3%', left: '76.0%', color: '#65a30d', delay: '0.9s', icon: '🛠️' },
+  { top: '83.2%', left: '55.6%', color: '#7c3aed', delay: '1.2s', icon: '💬' },
+  { top: '72.3%', left: '26.1%', color: '#dc2626', delay: '1.5s', icon: '🏦' },
+  { top: '49.7%', left: '17.0%', color: '#16a34a', delay: '1.8s', icon: '📦' },
+  { top: '27.1%', left: '26.1%', color: '#1d4ed8', delay: '2.1s', icon: '🤝' },
 ]
 
 /* ---------------------------------- form ---------------------------------- */
@@ -226,9 +226,9 @@ export function LoginModule() {
               ))}
               {BADGE_GLOWS.map((badge, index) => (
                 <span
-                  key={`pumpkin-${index}`}
+                  key={`badge-icon-${index}`}
                   aria-hidden="true"
-                  className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] lg:block animate-[pumpkin-pop_2.6s_ease-in-out_infinite]"
+                  className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] lg:block animate-[badge-pop_2.6s_ease-in-out_infinite]"
                   style={{
                     top: badge.top,
                     left: badge.left,
@@ -237,7 +237,7 @@ export function LoginModule() {
                     animationDelay: badge.delay,
                   }}
                 >
-                  🎃
+                  {badge.icon}
                 </span>
               ))}
             </div>

@@ -201,7 +201,7 @@ export function HomeOverview({ username, summary }: { username: string; summary:
         </div>
 
         <Card className="xl:col-span-4 @container">
-          <div className="grid grid-cols-2 @sm:grid-cols-3 divide-x divide-y divide-border [&>*:nth-child(-n+3)]:pb-3 [&>*:nth-child(n+4)]:pt-3">
+          <div className="grid grid-cols-3 divide-x divide-y divide-border [&>*:nth-child(-n+3)]:pb-3 [&>*:nth-child(n+4)]:pt-3">
             {zraStats.map((s, i) => (
               <div key={s.label} className={`min-w-0 ${i % 3 === 0 ? 'pr-3' : 'px-3'}`}>
                 <p className="text-xs text-text-muted truncate">{s.label}</p>

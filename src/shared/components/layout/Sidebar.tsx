@@ -22,6 +22,11 @@ import { nav as settingsNav } from '../../../features/settings/settings.nav'
 import { nav as reportsNav } from '../../../features/reports/reports.nav'
 import type { NavLeafItem, NavSection } from '../../../features/navTypes'
 
+// Kept as one pair so the rail's width and the collapsed flyout's left-offset
+// (which must butt up against the rail) can never drift out of sync.
+const RAIL_WIDTH_CLASS = 'w-28'
+const RAIL_WIDTH_OFFSET_CLASS = 'left-28'
+
 // Rail icon -> flyout panel of section items, in the exact order and with
 // the exact content of the real app's left menu (read from its llx_menu
 // table). Sections confirmed genuinely empty there (Expenses, Budget,
@@ -90,7 +95,17 @@ export function Sidebar({ open = true }: { open?: boolean }) {
   const location = useLocation()
   const [activeKey, setActiveKey] = useState('home')
   const [hovering, setHovering] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
   const active = SECTIONS.find((s) => s.key === activeKey) ?? SECTIONS[0]
+
+  const toggleGroup = (groupKey: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(groupKey)) next.delete(groupKey)
+      else next.add(groupKey)
+      return next
+    })
+  }
 
   // Pinned-open (`open` prop, toggled by Navbar's collapse button) keeps the
   // flyout in normal flex flow, pushing <main> over. When collapsed,
@@ -101,13 +116,15 @@ export function Sidebar({ open = true }: { open?: boolean }) {
 
   return (
     <div className="relative flex h-full shrink-0" onMouseEnter={() => !open && setHovering(true)} onMouseLeave={() => setHovering(false)}>
-      <aside className="w-14 bg-rail-bg h-full overflow-hidden flex flex-col items-center border-r border-black/10 dark:border-white/10">
+      <aside className={`${RAIL_WIDTH_CLASS} bg-rail-bg h-full overflow-hidden flex flex-col items-center border-r border-black/10 dark:border-white/10`}>
         <div className="flex flex-col items-center gap-0.5 pt-6 pb-6">
-        {!open && (
-          <span className="mb-1 rounded-md dark:bg-white/90 dark:p-1">
-            <img src={logoIcon} alt="ECUENTA" className="h-7 w-7 object-contain" />
-          </span>
-        )}
+        <span className={`mb-2 flex h-10 items-center justify-center ${open ? 'w-full px-2' : 'w-10'}`}>
+          <img
+            src={open ? logoFull : logoIcon}
+            alt={open ? 'ECUENTA - Financial Accounting CRM' : 'ECUENTA'}
+            className={open ? 'max-h-full w-full object-contain' : 'h-full w-full object-contain'}
+          />
+        </span>
         {SECTIONS.map((section) => {
           const Icon = section.icon
           const isActive = section.key === activeKey
@@ -134,21 +151,14 @@ export function Sidebar({ open = true }: { open?: boolean }) {
       </aside>
 
       <div
-        className={`h-full bg-surface border-r border-border overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? 'relative w-52' : `absolute left-14 top-0 z-30 shadow-xl ${expanded ? 'w-52' : 'w-0'}`
+        className={`h-full bg-surface dark:bg-rail-bg border-r border-border overflow-hidden transition-all duration-300 ease-in-out ${
+          open ? 'relative w-52' : `absolute ${RAIL_WIDTH_OFFSET_CLASS} top-0 z-30 shadow-xl ${expanded ? 'w-52' : 'w-0'}`
         }`}
         onMouseEnter={() => !open && setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >
-        <div className="w-52 h-full overflow-hidden py-4 px-3">
-          {open && (
-            <div className="mb-3 pl-1">
-              <span className="rounded-md dark:bg-white/90 dark:px-2 dark:py-1.5">
-                <img src={logoFull} alt="ECUENTA - Financial Accounting CRM" className="h-6 w-auto object-contain" />
-              </span>
-            </div>
-          )}
-          <div className="flex items-center justify-between mb-2 px-1 pb-2 border-b border-border">
+        <div className="soft-scrollbar w-52 h-full overflow-y-auto overflow-x-hidden pt-9 pb-4 px-3">
+          <div className="flex items-center justify-between mb-2 mt-6 px-1 pb-2 border-b border-border">
             <span className="text-xs font-bold tracking-wide text-brand uppercase">{active.label}</span>
             <button type="button" title={`Add to ${active.label}`} className="p-1 rounded-md text-brand hover:bg-surface-alt">
               <Plus size={14} />
@@ -160,17 +170,29 @@ export function Sidebar({ open = true }: { open?: boolean }) {
               if (!('items' in item) || !item.items) {
                 return <SidebarItem key={item.label} item={item} navigate={navigate} location={location} />
               }
+              const groupKey = `${activeKey}:${item.label}`
+              const isCollapsed = collapsedGroups.has(groupKey)
               return (
                 <div key={item.label} className="pt-0.5 first:pt-0">
-                  <div className="w-full flex items-center justify-between px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wide text-text-muted">
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(groupKey)}
+                    className="w-full flex items-center justify-between px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wide text-text-muted hover:bg-surface-alt/70"
+                  >
                     <span>{item.label}</span>
-                    <ChevronDown size={13} strokeWidth={2.5} className="shrink-0" />
-                  </div>
-                  <div>
-                    {item.items.map((sub) => (
-                      <SidebarItem key={sub.label} item={sub} indent navigate={navigate} location={location} />
-                    ))}
-                  </div>
+                    <ChevronDown
+                      size={13}
+                      strokeWidth={2.5}
+                      className={`shrink-0 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
+                    />
+                  </button>
+                  {!isCollapsed && (
+                    <div>
+                      {item.items.map((sub) => (
+                        <SidebarItem key={sub.label} item={sub} indent navigate={navigate} location={location} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )
             })}
