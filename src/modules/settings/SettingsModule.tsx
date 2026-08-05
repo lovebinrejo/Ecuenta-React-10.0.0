@@ -1,35 +1,21 @@
-import { useState } from 'react'
-import { Button } from '../../components/ui/Button'
-import { InputField } from '../../components/ui/InputField'
-import { appTheme } from '../../themes/theme'
+import { Settings } from 'lucide-react'
+import { Card } from '../../shared/components/dashboard/DashboardKit'
 
+// Was leftover template scaffolding (fake "admin@example.com" form,
+// pre-rebrand dark-slate theme, no connection to this app's real settings
+// at all). The actual settings live under the Administrator sidebar menu's
+// specific sub-pages (Company/Organization, Security, ...); this bare
+// /settings route isn't linked from anywhere reachable, so it's just an
+// honest landing rather than the previous fake form.
 export function SettingsModule() {
-  const [email, setEmail] = useState('admin@example.com')
-  const [team, setTeam] = useState('Product')
-
   return (
-    <section className={`${appTheme.shell} space-y-6`}>
-      <div>
-        <p className={`text-sm font-semibold uppercase tracking-[0.27em] ${appTheme.accent}`}>Settings</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Workspace configuration</h1>
-        <p className={`mt-2 text-sm ${appTheme.muted}`}>Manage core app settings and identity preferences.</p>
-      </div>
-
-      <div className="space-y-4">
-        <InputField
-          label="Admin email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-        <InputField
-          label="Team name"
-          value={team}
-          onChange={(event) => setTeam(event.target.value)}
-        />
-      </div>
-
-      <Button type="button">Save settings</Button>
-    </section>
+    <div className="space-y-4">
+      <h2 className="flex items-center gap-2 text-lg font-bold text-text!">
+        <Settings size={20} className="text-brand" /> Settings
+      </h2>
+      <Card>
+        <p className="text-sm text-text-muted">Use the Administrator menu in the sidebar for company, security, and other setup pages.</p>
+      </Card>
+    </div>
   )
 }

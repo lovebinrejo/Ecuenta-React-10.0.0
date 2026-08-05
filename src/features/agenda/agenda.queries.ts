@@ -1,5 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query'
+import { useLocalCollection } from '../../shared/localCollection'
+
 export interface ActivityEvent {
-  id: string | number
+  id: string
   label: string
   category: string
   authorName: string
@@ -11,9 +14,28 @@ interface RecentActivityParams {
   limit: number
 }
 
-// Stubbed: the real version reads llx_actioncomm activity from this app's
-// backend. This project has no backend of its own, so NotificationsPanel
-// always renders its honest "no notifications" empty state.
-export function useRecentActivity(_params: RecentActivityParams) {
-  return { data: [] as ActivityEvent[], isLoading: false }
+const KEY = ['local', 'activity'] as const
+const SEED: ActivityEvent[] = []
+
+// No backend endpoint exists for agenda/activity (llx_actioncomm) on this
+// app's server. Rather than invent fake notification data, this reads a
+// local activity log that other features' create actions append to (see
+// useLogActivity below) — so it's honest in both directions: empty until
+// something real happens in this session, and genuine when it does.
+export function useRecentActivity({ category, limit }: RecentActivityParams) {
+  const [events] = useLocalCollection(KEY, SEED)
+  const filtered = category === 'all' ? events : events.filter((e) => e.category === category)
+  return { data: filtered.slice(0, limit), isLoading: false }
+}
+
+let idSeq = 1
+
+export function useLogActivity() {
+  const queryClient = useQueryClient()
+  return (event: Omit<ActivityEvent, 'id' | 'date'>) => {
+    queryClient.setQueryData<ActivityEvent[]>(KEY, (current) => [
+      { ...event, id: `local-${idSeq++}`, date: new Date().toISOString() },
+      ...(current ?? SEED),
+    ])
+  }
 }

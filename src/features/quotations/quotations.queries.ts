@@ -1,3 +1,6 @@
+import { useLocalCollection, nextLocalRef, todayIso } from '../../shared/localCollection'
+import { useLogActivity } from '../agenda/agenda.queries'
+
 export interface QuotationRow {
   ref: string
   refCustomer: string
@@ -22,7 +25,7 @@ export interface QuotationsSummary {
   quotations: QuotationRow[]
 }
 
-const STUB_SUMMARY: QuotationsSummary = {
+const SEED: QuotationsSummary = {
   totalProposals: 0,
   proposalsThisMonth: 0,
   totalProposalAmount: 0,
@@ -31,11 +34,52 @@ const STUB_SUMMARY: QuotationsSummary = {
   quotations: [],
 }
 
-// Stubbed: the real version calls Dolibarr's comm/propal/list stats
-// (proposal counts, this-month count, total value, validated/draft
-// breakdown, plus the quotation list itself). This project has no backend
-// of its own, so it always reports the same all-zero/empty summary,
-// matching the reference list on a fresh install with no quotations yet.
+const KEY = ['local', 'quotations'] as const
+
+// No backend endpoint exists for quotations/proposals on this app's server
+// (confirmed: comm/propal/list has no equivalent route). Held in
+// react-query's cache only — see shared/localCollection.ts — so creating
+// one here feels real in the browser but never persists anywhere.
 export function useQuotationsSummary() {
-  return { data: STUB_SUMMARY, isError: false, isLoading: false }
+  const [data] = useLocalCollection(KEY, SEED)
+  return { data, isError: false, isLoading: false }
+}
+
+export interface NewQuotationInput {
+  thirdParty: string
+  refCustomer?: string
+  date: string
+  endDate?: string
+  amountExclTax: number
+  author: string
+}
+
+export function useCreateQuotation() {
+  const [, update] = useLocalCollection(KEY, SEED)
+  const logActivity = useLogActivity()
+  return (input: NewQuotationInput) => {
+    const row: QuotationRow = {
+      ref: nextLocalRef('(PROV-PR)'),
+      refCustomer: input.refCustomer ?? '',
+      projectRef: '',
+      thirdParty: input.thirdParty,
+      city: '',
+      zipCode: '',
+      date: input.date || todayIso(),
+      endDate: input.endDate ?? '',
+      amountExclTax: input.amountExclTax,
+      author: input.author,
+      salesRep: input.author,
+      status: 'Draft',
+    }
+    update((current) => ({
+      ...current,
+      totalProposals: current.totalProposals + 1,
+      proposalsThisMonth: current.proposalsThisMonth + 1,
+      totalProposalAmount: current.totalProposalAmount + input.amountExclTax,
+      draftCount: current.draftCount + 1,
+      quotations: [row, ...current.quotations],
+    }))
+    logActivity({ label: `New quotation ${row.ref} for ${row.thirdParty}`, category: 'other', authorName: input.author })
+  }
 }

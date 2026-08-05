@@ -1,3 +1,6 @@
+import { useLocalCollection, nextLocalRef, todayIso } from '../../shared/localCollection'
+import { useLogActivity } from '../agenda/agenda.queries'
+
 export interface PurchaseOrderRow {
   ref: string
   refOrderVendor: string
@@ -21,7 +24,7 @@ export interface PurchaseOrdersSummary {
   orders: PurchaseOrderRow[]
 }
 
-const STUB_SUMMARY: PurchaseOrdersSummary = {
+const SEED: PurchaseOrdersSummary = {
   totalOrders: 0,
   ordersThisMonth: 0,
   totalPurchaseAmount: 0,
@@ -30,11 +33,50 @@ const STUB_SUMMARY: PurchaseOrdersSummary = {
   orders: [],
 }
 
-// Stubbed: the real version calls Dolibarr's fourn/commande/list stats
-// (purchase order counts, this-month count, total value, approved/pending
-// breakdown, plus the order list itself). This project has no backend of
-// its own, so it always reports the same all-zero/empty summary, matching
-// the reference list on a fresh install with no purchase orders yet.
+const KEY = ['local', 'purchaseOrders'] as const
+
+// No backend endpoint exists for purchase orders on this app's server
+// (confirmed: fourn/commande/list has no equivalent route). Held in
+// react-query's cache only — see shared/localCollection.ts — so creating
+// one here feels real in the browser but never persists anywhere.
 export function usePurchaseOrdersSummary() {
-  return { data: STUB_SUMMARY, isError: false, isLoading: false }
+  const [data] = useLocalCollection(KEY, SEED)
+  return { data, isError: false, isLoading: false }
+}
+
+export interface NewPurchaseOrderInput {
+  thirdParty: string
+  refOrderVendor?: string
+  plannedDelivery?: string
+  amountExclTax: number
+  author: string
+}
+
+export function useCreatePurchaseOrder() {
+  const [, update] = useLocalCollection(KEY, SEED)
+  const logActivity = useLogActivity()
+  return (input: NewPurchaseOrderInput) => {
+    const row: PurchaseOrderRow = {
+      ref: nextLocalRef('(PROV-CO)'),
+      refOrderVendor: input.refOrderVendor ?? '',
+      requestAuthor: input.author,
+      thirdParty: input.thirdParty,
+      city: '',
+      zipCode: '',
+      orderDate: todayIso(),
+      plannedDelivery: input.plannedDelivery ?? '',
+      amountExclTax: input.amountExclTax,
+      status: 'Pending',
+      billed: false,
+    }
+    update((current) => ({
+      ...current,
+      totalOrders: current.totalOrders + 1,
+      ordersThisMonth: current.ordersThisMonth + 1,
+      totalPurchaseAmount: current.totalPurchaseAmount + input.amountExclTax,
+      pendingCount: current.pendingCount + 1,
+      orders: [row, ...current.orders],
+    }))
+    logActivity({ label: `New purchase order ${row.ref} from ${row.thirdParty}`, category: 'orders', authorName: input.author })
+  }
 }

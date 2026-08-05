@@ -1,13 +1,101 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShoppingCart, Plus, User, FileText, Check, TriangleAlert, Search, CalendarDays } from 'lucide-react'
+import { ShoppingCart, Plus, User, FileText, Check, TriangleAlert, Search, CalendarDays, CreditCard, X, LoaderCircle } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, fmtZMW } from '../../../shared/components/dashboard/DashboardKit'
 import { formatMoney } from '../../../utils/format'
-import type { InvoicesSummary } from '../invoices.queries'
+import { useMarkInvoicePaid, useRecordInvoicePayment, type InvoiceRow, type InvoicesSummary } from '../invoices.queries'
 
-const COLUMNS = ['Ref', 'Invoice No', 'Invoice Date', 'Third-Party', 'City', 'Payment Type', 'Amount (Incl. Tax)', 'Author', 'Status', 'Zra Status']
+const COLUMNS = ['Ref', 'Invoice No', 'Invoice Date', 'Third-Party', 'City', 'Payment Type', 'Amount (Incl. Tax)', 'Author', 'Status', 'Zra Status', 'Actions']
+
+function RecordPaymentForm({ row, onClose }: { row: InvoiceRow; onClose: () => void }) {
+  const recordPayment = useRecordInvoicePayment()
+  const [amount, setAmount] = useState(row.amountInclTax)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+
+  async function handleSubmit() {
+    setError('')
+    if (amount <= 0) {
+      setError('Amount must be greater than zero.')
+      return
+    }
+    try {
+      await recordPayment.mutateAsync({ invoiceId: row.id, amount, note })
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to record payment')
+    }
+  }
+
+  return (
+    <Card className="border-brand/40 mb-3">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-text!">Record Payment — {row.ref}</h3>
+        <button type="button" onClick={onClose} className="p-1 rounded-md text-text-faint hover:bg-surface-hover">
+          <X size={16} />
+        </button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-sm text-text">Amount</span>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value))}
+            className="text-sm rounded-md border border-input-border bg-input-bg text-text px-3 py-2"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-sm text-text">Note</span>
+          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} className="text-sm rounded-md border border-input-border bg-input-bg text-text px-3 py-2" />
+        </label>
+      </div>
+      {error && <p className="text-sm text-danger mt-2">{error}</p>}
+      <div className="flex justify-end mt-3">
+        <button
+          type="button"
+          disabled={recordPayment.isPending}
+          onClick={handleSubmit}
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-hover disabled:opacity-60"
+        >
+          {recordPayment.isPending ? <LoaderCircle size={14} className="animate-spin" /> : <Check size={14} />} Submit payment
+        </button>
+      </div>
+    </Card>
+  )
+}
+
+function RowActions({ row, payingRef, onTogglePay }: { row: InvoiceRow; payingRef: string | null; onTogglePay: (ref: string | null) => void }) {
+  const markPaid = useMarkInvoicePaid()
+  if (!row.canRecordPayment) return <span className="text-text-faint">-</span>
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        disabled={markPaid.isPending}
+        onClick={() => markPaid.mutate(row.id)}
+        className="flex items-center gap-1 text-xs font-medium text-success hover:underline disabled:opacity-60"
+      >
+        <Check size={12} /> Mark Paid
+      </button>
+      <button
+        type="button"
+        onClick={() => onTogglePay(payingRef === row.ref ? null : row.ref)}
+        className="flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+      >
+        <CreditCard size={12} /> Pay…
+      </button>
+    </div>
+  )
+}
 
 export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
+  const [payingRef, setPayingRef] = useState<string | null>(null)
+  const payingRow = summary.rows.find((r) => r.ref === payingRef)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -67,6 +155,8 @@ export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
         </Card>
       </div>
 
+      {payingRow && <RecordPaymentForm row={payingRow} onClose={() => setPayingRef(null)} />}
+
       <Card className="!p-0 overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-4 border-b border-border">
           <select disabled defaultValue="15" className="text-sm rounded-md border border-input-border bg-input-bg text-text px-2 py-1.5">
@@ -80,9 +170,9 @@ export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
             <CalendarDays size={14} />
           </button>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[60vh]">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="text-left text-xs text-text-faint uppercase tracking-wide border-b border-border bg-surface">
                 {COLUMNS.map((col) => (
                   <th key={col} className="font-medium px-4 py-2.5 whitespace-nowrap">
@@ -111,6 +201,9 @@ export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
                     <td className="px-4 py-3 text-text-muted">{r.author}</td>
                     <td className="px-4 py-3 text-text-muted">{r.status}</td>
                     <td className="px-4 py-3 text-text-muted">{r.zraStatus}</td>
+                    <td className="px-4 py-3">
+                      <RowActions row={r} payingRef={payingRef} onTogglePay={setPayingRef} />
+                    </td>
                   </tr>
                 ))
               )}

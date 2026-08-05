@@ -10,8 +10,8 @@ export const BACKEND_URLS = {
 } as const
 
 // <-- CHANGE THIS, then restart the dev server.
-export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'local'
-
+export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'demoV2'
+    
 // Some API responses (e.g. GET /user/'s `photo`) return a root-relative path
 // straight from PHP (DOL_URL_ROOT + '/viewimage.php?...'), not a full URL.
 // Vite's dev proxy only forwards /api and /custom, so those paths need the

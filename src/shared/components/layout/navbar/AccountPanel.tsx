@@ -48,7 +48,7 @@ export function AccountPanel({ user, onClose, onLogout }: { user: AuthUser | nul
   const timeLabel = now.toLocaleTimeString('en-ZM', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: timeZoneLabel })
 
   return (
-    <div className="absolute right-0 mt-1 w-96 max-h-[calc(100vh-4rem)] overflow-y-auto soft-scrollbar bg-surface border border-border rounded-lg shadow-xl z-30">
+    <div className="absolute right-0 mt-1 w-[min(90vw,24rem)] max-h-[calc(100vh-4rem)] overflow-y-auto soft-scrollbar bg-surface border border-border rounded-lg shadow-xl z-30">
       <div className="flex items-start justify-between gap-2 p-4 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
           <Avatar photo={user?.photo} name={displayName} size={48} rounded="lg" />

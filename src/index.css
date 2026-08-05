@@ -7,19 +7,23 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #e2e8f0;
-  background-color: #020617;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Was hardcoded to the old pre-rebrand template's dark colors regardless of
+   the app's actual light/dark theme (see ThemeContext.tsx) — every page
+   load flashed that dark gradient before AppShell's own themed background
+   painted over it. Using the same --color-surface/--color-text tokens
+   every other surface in the app already uses instead. */
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #020617 0%, #111827 100%);
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 #root {

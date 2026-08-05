@@ -25,17 +25,19 @@ function timeAgo(iso: string) {
 }
 
 // Ports the legacy Navbar bell icon's Notifications/Chat panel.
-// Notifications reads from useRecentActivity (stubbed in this project — see
-// agenda.queries.ts), so it always renders its honest empty state. Chat has
-// no backing feature in this app at all, so it stays an honest empty state
-// too rather than fake conversation data.
+// Notifications reads from useRecentActivity (see agenda.queries.ts) — a
+// local activity log other features' create actions append to, since this
+// app's backend has no agenda/activity endpoint. Starts empty and fills in
+// as real actions happen in this session. Chat has no backing feature in
+// this app at all, so it stays an honest empty state rather than fake
+// conversation data.
 export function NotificationsPanel({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<'notifications' | 'chat'>('notifications')
   const [filter, setFilter] = useState('all')
   const { data, isLoading } = useRecentActivity({ category: filter, limit: 30 })
 
   return (
-    <div className="absolute right-0 mt-1 w-96 max-h-[calc(100vh-4rem)] flex flex-col bg-surface border border-border rounded-lg shadow-xl z-30">
+    <div className="absolute right-0 mt-1 w-[min(90vw,24rem)] max-h-[calc(100vh-4rem)] flex flex-col bg-surface border border-border rounded-lg shadow-xl z-30">
       <div className="flex items-center gap-2 p-2 border-b border-border shrink-0">
         <button
           type="button"

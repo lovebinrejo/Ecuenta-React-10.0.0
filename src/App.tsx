@@ -8,7 +8,6 @@ import { AuthProvider } from './features/auth/AuthContext'
 import { ProtectedRoute } from './features/auth/ProtectedRoute'
 import { LoginModule } from './modules/auth/LoginModule'
 import { DashboardModule } from './modules/dashboard/DashboardModule'
-import { UsersModule } from './modules/users/UsersModule'
 import { ReportsModule } from './modules/reports/ReportsModule'
 import { SettingsModule } from './modules/settings/SettingsModule'
 import { ZraModule } from './modules/zra/ZraModule'
@@ -20,6 +19,7 @@ import { LedgerModule } from './modules/ledger/LedgerModule'
 import { KitchenModule } from './modules/kitchen/KitchenModule'
 import { HotelModule } from './modules/hotel/HotelModule'
 import { UsersDashboardModule } from './modules/usersDashboard/UsersDashboardModule'
+import { UserCreateModule } from './modules/usersDashboard/UserCreateModule'
 import { CustomersListModule } from './modules/customers/CustomersListModule'
 import { CustomerCreateModule } from './modules/customers/CustomerCreateModule'
 import { VendorsListModule } from './modules/vendors/VendorsListModule'
@@ -36,6 +36,9 @@ import { PurchaseOrdersListModule } from './modules/purchaseOrders/PurchaseOrder
 import { PurchaseOrderCreateModule } from './modules/purchaseOrders/PurchaseOrderCreateModule'
 import { SupplierProposalsListModule } from './modules/supplierProposals/SupplierProposalsListModule'
 import { SupplierProposalCreateModule } from './modules/supplierProposals/SupplierProposalCreateModule'
+import { ProductsListModule } from './modules/products/ProductsListModule'
+import { ServicesListModule } from './modules/products/ServicesListModule'
+import { AgendaModule } from './modules/agenda/AgendaModule'
 import { ROUTES } from './routes'
 
 function AppLayout() {
@@ -68,6 +71,7 @@ function App() {
                 <Route path={ROUTES.kitchenDashboard} element={<KitchenModule />} />
                 <Route path={ROUTES.bookingDashboard} element={<HotelModule />} />
                 <Route path={ROUTES.usersDashboard} element={<UsersDashboardModule />} />
+                <Route path={ROUTES.userCreate} element={<UserCreateModule />} />
                 <Route path={ROUTES.customerList} element={<CustomersListModule />} />
                 <Route path={ROUTES.customersCreate} element={<CustomerCreateModule />} />
                 <Route path={ROUTES.vendorList} element={<VendorsListModule />} />
@@ -84,7 +88,9 @@ function App() {
                 <Route path={ROUTES.purchaseOrderCreate} element={<PurchaseOrderCreateModule />} />
                 <Route path={ROUTES.supplierProposalList} element={<SupplierProposalsListModule />} />
                 <Route path={ROUTES.supplierProposalCreate} element={<SupplierProposalCreateModule />} />
-                <Route path="/users" element={<UsersModule />} />
+                <Route path={ROUTES.productList} element={<ProductsListModule />} />
+                <Route path={ROUTES.serviceList} element={<ServicesListModule />} />
+                <Route path={ROUTES.agenda} element={<AgendaModule />} />
                 <Route path="/reports" element={<ReportsModule />} />
                 <Route path="/settings" element={<SettingsModule />} />
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />

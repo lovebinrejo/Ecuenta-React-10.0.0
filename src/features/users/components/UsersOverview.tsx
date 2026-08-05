@@ -12,11 +12,31 @@ function StatCard({ label, value, caption, icon: Icon, color }: { label: string;
     <Card className="flex items-start justify-between gap-3">
       <div className="min-w-0">
         <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">{label}</p>
-        <p className="text-2xl font-bold text-text! mt-1">{value}</p>
+        <p className="text-2xl font-bold text-text! mt-1 truncate">{value}</p>
         <p className="text-xs text-text-faint mt-1 truncate">{caption}</p>
       </div>
       <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${ICON_STYLES[color]}`}>
         <Icon size={18} />
+      </span>
+    </Card>
+  )
+}
+
+// Admins breaks its POS/KOT sub-counts onto their own line instead of one
+// long "N | POS: N | KOT: N" string — that string overflowed StatCard's
+// text-2xl value line on anything narrower than a full desktop column.
+function AdminsStatCard({ admins, adminsPos, adminsKot }: { admins: number; adminsPos: number; adminsKot: number }) {
+  return (
+    <Card className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Admins</p>
+        <p className="text-2xl font-bold text-text! mt-1">{admins}</p>
+        <p className="text-xs text-text-faint mt-1 truncate">
+          Admin users · POS {adminsPos} · KOT {adminsKot}
+        </p>
+      </div>
+      <span className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${ICON_STYLES.indigo}`}>
+        <ShieldCheck size={18} />
       </span>
     </Card>
   )
@@ -41,7 +61,7 @@ export function UsersOverview({ summary }: { summary: UsersSummary }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <StatCard label="Total Users" value={summary.totalUsers} caption="All user records" icon={Users} color="blue" />
-        <StatCard label="Admins" value={`${summary.admins} | POS: ${summary.adminsPos} | KOT: ${summary.adminsKot}`} caption="Admin users" icon={ShieldCheck} color="indigo" />
+        <AdminsStatCard admins={summary.admins} adminsPos={summary.adminsPos} adminsKot={summary.adminsKot} />
         <StatCard label="Super Admin" value={summary.superAdmins} caption="Top-level admins" icon={Crown} color="amber" />
         <StatCard label="Active Users" value={summary.activeUsers} caption="Enabled accounts" icon={UserCheck} color="green" />
         <StatCard label="Today Login Users" value={summary.todayLoginUsers} caption="Logged in today" icon={CalendarCheck} color="cyan" />
@@ -57,9 +77,9 @@ export function UsersOverview({ summary }: { summary: UsersSummary }) {
             <input disabled type="text" placeholder="Search" className="w-full text-sm rounded-md border border-input-border bg-input-bg text-text pl-8 pr-3 py-1.5" />
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-auto max-h-[60vh]">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="text-left text-xs text-text-faint uppercase tracking-wide border-b border-border bg-surface">
                 {COLUMNS.map((col) => (
                   <th key={col} className="font-medium px-4 py-2.5 whitespace-nowrap">
