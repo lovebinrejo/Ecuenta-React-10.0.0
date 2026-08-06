@@ -4,13 +4,13 @@
 // config isn't hot-reloadable, unlike everything else in this app) to
 // switch which backend you're testing against.
 export const BACKEND_URLS = {
-  local: 'http://localhost/ecuenta9/htdocs',
+  local: 'http://localhost/ecnta10/htdocs',
   demoV2: 'https://demov2.ecuenta.app',
   demo1: 'https://demo1.ecuenta.online',
 } as const
 
 // <-- CHANGE THIS, then restart the dev server.
-export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'demoV2'
+export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'local'
     
 // Some API responses (e.g. GET /user/'s `photo`) return a root-relative path
 // straight from PHP (DOL_URL_ROOT + '/viewimage.php?...'), not a full URL.

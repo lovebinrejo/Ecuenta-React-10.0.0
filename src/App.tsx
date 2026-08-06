@@ -11,6 +11,13 @@ import { DashboardModule } from './modules/dashboard/DashboardModule'
 import { ReportsModule } from './modules/reports/ReportsModule'
 import { SettingsModule } from './modules/settings/SettingsModule'
 import { ZraModule } from './modules/zra/ZraModule'
+import { ZraImportModule } from './modules/zra/ZraImportModule'
+import { ZraAutomaticPurchaseModule } from './modules/zra/ZraAutomaticPurchaseModule'
+import { ZraUnuploadedCustomersModule } from './modules/zra/ZraUnuploadedCustomersModule'
+import { ZraPendingSalesModule } from './modules/zra/ZraPendingSalesModule'
+import { ZraPendingPurchaseModule } from './modules/zra/ZraPendingPurchaseModule'
+import { ZraUnuploadedStockModule } from './modules/zra/ZraUnuploadedStockModule'
+import { ZraUnuploadProductsModule } from './modules/zra/ZraUnuploadProductsModule'
 import { SalesModule } from './modules/sales/SalesModule'
 import { PurchasesModule } from './modules/purchases/PurchasesModule'
 import { WarehousesModule } from './modules/warehouses/WarehousesModule'
@@ -63,6 +70,13 @@ function App() {
                 <Route path="/dashboard" element={<DashboardModule />} />
                 <Route path={ROUTES.home} element={<DashboardModule />} />
                 <Route path={ROUTES.zra} element={<ZraModule />} />
+                <Route path={ROUTES.zraImport} element={<ZraImportModule />} />
+                <Route path={ROUTES.zraAutomaticPurchase} element={<ZraAutomaticPurchaseModule />} />
+                <Route path={ROUTES.zraUnuploadedCustomers} element={<ZraUnuploadedCustomersModule />} />
+                <Route path={ROUTES.zraPendingSales} element={<ZraPendingSalesModule />} />
+                <Route path={ROUTES.zraPendingPurchase} element={<ZraPendingPurchaseModule />} />
+                <Route path={ROUTES.zraUnuploadedStockMovements} element={<ZraUnuploadedStockModule />} />
+                <Route path={ROUTES.zraUnuploadedProducts} element={<ZraUnuploadProductsModule />} />
                 <Route path={ROUTES.salesDashboard} element={<SalesModule />} />
                 <Route path={ROUTES.purchasesDashboard} element={<PurchasesModule />} />
                 <Route path={ROUTES.warehouseDashboard} element={<WarehousesModule />} />

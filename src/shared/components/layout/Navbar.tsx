@@ -12,7 +12,7 @@ import { ClockInPanel } from './navbar/ClockInPanel'
 import { useAttendanceStatus } from '../../../features/attendance/attendance.queries'
 import { Avatar } from '../Avatar'
 import logoIcon from '../../../assets/log3.png'
-import logoFull from '../../../assets/login-logo.png'
+import logoFull from '../../../assets/Ecuenta_logo.png'
 
 type PanelName = 'account' | 'settings' | 'notifications' | 'daily-summary' | 'clock' | null
 

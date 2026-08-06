@@ -93,6 +93,26 @@ export function useProductOptions() {
   return { data: data?.rows, ...rest }
 }
 
+// GET /api/products/?action=list&search= — same real endpoint as above, but
+// server-side filtered for search-as-you-type use (see ZRA Split Details'
+// product picker) instead of fetching the whole catalog client-side.
+export interface ProductSearchResult {
+  id: string
+  ref: string
+  label: string
+}
+export function useProductSearch(query: string) {
+  return useQuery({
+    queryKey: ['products', 'search', query],
+    queryFn: async (): Promise<ProductSearchResult[]> => {
+      const { data } = await api.get<ProductsResponse>('/products/', { params: { action: 'list', search: query, limit: 20 } })
+      return (data.products ?? []).map((p) => ({ id: String(p.id ?? ''), ref: p.ref ?? '', label: p.label ?? '' }))
+    },
+    enabled: query.trim().length > 1,
+    staleTime: 1000 * 30,
+  })
+}
+
 export function useServicesSummary() {
   const { data, ...rest } = useProductRows()
   const summary: ServicesSummary | undefined = data && {

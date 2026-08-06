@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode, type SubmitEvent } from 'r
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthContext'
 import { useEntities } from '../../features/settings/settings.queries'
-import logo from '../../assets/login-logo.png'
+import logo from '../../assets/Ecuenta_logo.png'
 import loginArt from '../../assets/login-graphic.png'
 
 /* ---------------------------------- icons --------------------------------- */

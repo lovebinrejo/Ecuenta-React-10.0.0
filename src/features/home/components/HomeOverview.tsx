@@ -389,7 +389,7 @@ export function HomeOverview({ username, summary }: { username: string; summary:
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
         <Card>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-text!">Last 7 Sales</h3>

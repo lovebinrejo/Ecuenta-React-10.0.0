@@ -89,3 +89,44 @@ body {
 .dark .soft-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(100, 116, 139, 0.75);
 }
+
+/* Minimal Bootstrap-lookalike rules for legacy HTML fragments embedded
+   verbatim from the real ecuenta9 ZRA AJAX endpoints (see
+   AsycudaImportList.tsx) — this app doesn't load Bootstrap, so those
+   fragments' own `.btn`/`.badge`/utility classes render as plain text
+   without this. Only the classes those specific fragments actually use. */
+.legacy-html .d-flex { display: flex; }
+.legacy-html .flex-wrap { flex-wrap: wrap; }
+.legacy-html .gap-1 { gap: 0.25rem; }
+.legacy-html .me-1 { margin-right: 0.25rem; }
+.legacy-html .px-0 { padding-left: 0; padding-right: 0; }
+.legacy-html .nowrap { white-space: nowrap; }
+.legacy-html .text-light { color: #fff; }
+.legacy-html .text-muted { color: var(--color-text-faint); }
+.legacy-html .badge {
+  display: inline-block;
+  padding: 0.2em 0.55em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.25rem;
+}
+.legacy-html .badge-warning { background: var(--color-warning-bg); color: var(--color-warning-fg); }
+.legacy-html .btn {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  line-height: 1.2;
+}
+.legacy-html .btn:hover { opacity: 0.9; }
+.legacy-html .btn-sm { padding: 0.25rem 0.55rem; font-size: 0.7rem; }
+.legacy-html .btn-success { background: var(--color-success); }
+.legacy-html .btn-danger { background: var(--color-danger); }
+.legacy-html .btn-warning,
+.legacy-html .bg-warning { background: #d97706; }
+.legacy-html .btn-primary { background: var(--color-brand); }
+.legacy-html .btn-info { background: #0891b2; }

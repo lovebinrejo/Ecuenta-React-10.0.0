@@ -72,7 +72,8 @@ function PurchaseAmountCard({ amount }: { amount: number }) {
 
 const STATUS_BADGE: Record<ZraSyncDetailRow['status'], { label: string; cls: string; symbol: string }> = {
   poor: { label: 'POOR', cls: 'bg-danger-bg text-danger-fg', symbol: '✗' },
-  good: { label: 'GOOD', cls: 'bg-warning-bg text-warning-fg', symbol: '✓' },
+  fair: { label: 'FAIR', cls: 'bg-warning-bg text-warning-fg', symbol: '⚠' },
+  good: { label: 'GOOD', cls: 'bg-success-bg text-success-fg', symbol: '✓' },
   complete: { label: 'COMPLETE', cls: 'bg-success-bg text-success-fg', symbol: '✓' },
 }
 
