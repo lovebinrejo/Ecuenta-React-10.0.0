@@ -1,14 +1,20 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileEdit, Plus, FileCheck2, PlayCircle, TriangleAlert, MessagesSquare, Search, CalendarDays } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, TwoValueStatCard } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import type { ContractsSummary } from '../contracts.queries'
 
 const COLUMNS = ['Ref.', 'Ref. Customer', 'Ref. Vendor', 'Third-Party', 'Sales Representatives Of Third Party', 'Contract Date', 'End Date Of Active Services', 'Not Running', 'In Progress', 'Expired', 'Closed']
+const PER_PAGE = 15
 
 const dash = (n: number) => (n === 0 ? '-' : String(n))
 
 export function ContractsList({ summary }: { summary: ContractsSummary }) {
+  const [page, setPage] = useState(1)
+  const pageContracts = summary.contracts.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -59,7 +65,7 @@ export function ContractsList({ summary }: { summary: ContractsSummary }) {
                   </td>
                 </tr>
               ) : (
-                summary.contracts.map((c) => (
+                pageContracts.map((c) => (
                   <tr key={c.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{c.ref}</td>
                     <td className="px-4 py-3 text-text-muted">{c.refCustomer}</td>
@@ -78,19 +84,8 @@ export function ContractsList({ summary }: { summary: ContractsSummary }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.contracts.length} to {summary.contracts.length} of {summary.contracts.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.contracts.length} onPageChange={setPage} />
     </div>
   )
 }

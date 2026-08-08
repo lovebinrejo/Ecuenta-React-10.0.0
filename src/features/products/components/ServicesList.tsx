@@ -1,11 +1,17 @@
+import { useState } from 'react'
 import { Wrench, Search } from 'lucide-react'
 import { Card, ICON_STYLES } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import { formatMoney } from '../../../utils/format'
 import type { ServicesSummary } from '../products.queries'
 
 const COLUMNS = ['Ref', 'Label', 'Price (Excl. Tax)', 'Price (Incl. Tax)', 'VAT']
+const PER_PAGE = 15
 
 export function ServicesList({ summary }: { summary: ServicesSummary }) {
+  const [page, setPage] = useState(1)
+  const pageServices = summary.services.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <h2 className="flex items-center gap-2 text-lg font-bold text-text!">
@@ -50,7 +56,7 @@ export function ServicesList({ summary }: { summary: ServicesSummary }) {
                   </td>
                 </tr>
               ) : (
-                summary.services.map((s) => (
+                pageServices.map((s) => (
                   <tr key={s.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{s.ref}</td>
                     <td className="px-4 py-3 text-text!">{s.label}</td>
@@ -63,12 +69,8 @@ export function ServicesList({ summary }: { summary: ServicesSummary }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.services.length} to {summary.services.length} of {summary.services.length} entries
-          </span>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.services.length} onPageChange={setPage} />
     </div>
   )
 }

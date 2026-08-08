@@ -256,7 +256,7 @@ export function PayrollOverview({ summary }: { summary: PayrollSummary }) {
         <MonthAmountCard label="Salary Paid (Last Month)" value={summary.salaryPaidLastMonth} caption={summary.salaryPaidLastMonthLabel} valueColor="text-blue-500" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ActionGroupCard
           icon={Camera}
           title="Payroll Management"

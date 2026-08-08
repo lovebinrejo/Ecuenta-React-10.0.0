@@ -35,7 +35,7 @@ export function PurchasesOverview({ summary }: { summary: PurchasesSummary }) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <InvoiceStatusChart title="Supplier Invoice Chart" rows={summary.invoiceStatus} />
         <InvoiceStatusTable title="Supplier Invoice Amounts By Status" rows={summary.invoiceStatus} />
         <TopProductsTable icon={TrendingUp} title="Top Purchased Product" year={summary.topProductsYear} rows={summary.topProducts} emptyLabel="No purchases yet." />

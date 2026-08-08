@@ -1,11 +1,13 @@
-import { type ComponentType } from 'react'
+import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { UserRound, Plus, Filter, Users, ShieldCheck, Crown, UserCheck, CalendarCheck, Search } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, type IconColor } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import type { UsersSummary } from '../users.queries'
 
 const COLUMNS = ['Login', 'Name', 'Employee', 'Phone', 'Email', 'Gender', 'Designation', 'Last Login', 'Status', 'Type']
+const PER_PAGE = 15
 
 function StatCard({ label, value, caption, icon: Icon, color }: { label: string; value: string | number; caption: string; icon: ComponentType<{ size?: number }>; color: IconColor }) {
   return (
@@ -43,6 +45,9 @@ function AdminsStatCard({ admins, adminsPos, adminsKot }: { admins: number; admi
 }
 
 export function UsersOverview({ summary }: { summary: UsersSummary }) {
+  const [page, setPage] = useState(1)
+  const pageUsers = summary.users.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -96,7 +101,7 @@ export function UsersOverview({ summary }: { summary: UsersSummary }) {
                   </td>
                 </tr>
               ) : (
-                summary.users.map((u) => (
+                pageUsers.map((u) => (
                   <tr key={u.login} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{u.login}</td>
                     <td className="px-4 py-3 text-text!">{u.name}</td>
@@ -118,25 +123,8 @@ export function UsersOverview({ summary }: { summary: UsersSummary }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.users.length} to {summary.users.length} of {summary.users.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '1', '›', '»'].map((label) => (
-              <button
-                key={label}
-                type="button"
-                disabled
-                title="Not built yet"
-                className={`w-7 h-7 rounded-md text-xs cursor-default ${label === '1' ? 'bg-brand text-white' : 'border border-border text-text-faint'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.users.length} onPageChange={setPage} />
     </div>
   )
 }

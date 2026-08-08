@@ -1,10 +1,12 @@
-import { type ComponentType } from 'react'
+import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, CalendarRange } from 'lucide-react'
 import { Card, ICON_STYLES, type IconColor } from '../dashboard/DashboardKit'
+import { ListPagination } from '../ListPagination'
 import { formatMoney } from '../../../utils/format'
 
 const COLUMNS = ['Third-Party Name', 'Country', 'Outstanding Balance', 'Tpin', 'Sales Representatives', 'Email & Phone', 'Nature Of Third Party', 'Tracking Id', 'Creation Date', 'Status']
+const PER_PAGE = 15
 
 export interface ThirdPartyRow {
   name: string
@@ -59,6 +61,9 @@ export function ThirdPartyList({
   stats: ThirdPartyStatSpec[]
   rows: ThirdPartyRow[]
 }) {
+  const [page, setPage] = useState(1)
+  const pageRows = rows.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,7 +113,7 @@ export function ThirdPartyList({
                   </td>
                 </tr>
               ) : (
-                rows.map((r) => (
+                pageRows.map((r) => (
                   <tr key={r.name} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{r.name}</td>
                     <td className="px-4 py-3 text-text-muted">{r.country}</td>
@@ -134,19 +139,8 @@ export function ThirdPartyList({
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {rows.length} to {rows.length} of {rows.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={rows.length} onPageChange={setPage} />
     </div>
   )
 }

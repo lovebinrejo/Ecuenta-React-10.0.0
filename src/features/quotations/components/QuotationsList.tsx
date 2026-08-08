@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileBadge, Plus, FileText, CalendarPlus, DollarSign, ListChecks, Search, CalendarDays } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, TwoValueStatCard, fmtZMW } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import { formatMoney } from '../../../utils/format'
 import type { QuotationsSummary } from '../quotations.queries'
 
 const COLUMNS = ['Ref', 'Ref. Customer', 'Project Ref', 'Third-Party', 'City', 'Zip Code', 'Date', 'End Date', 'Amount (Excl. Tax)', 'Author', 'Sales Representatives Of Third Party', 'Status']
+const PER_PAGE = 15
 
 export function QuotationsList({ summary }: { summary: QuotationsSummary }) {
+  const [page, setPage] = useState(1)
+  const pageQuotations = summary.quotations.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -85,7 +91,7 @@ export function QuotationsList({ summary }: { summary: QuotationsSummary }) {
                   </td>
                 </tr>
               ) : (
-                summary.quotations.map((q) => (
+                pageQuotations.map((q) => (
                   <tr key={q.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{q.ref}</td>
                     <td className="px-4 py-3 text-text-muted">{q.refCustomer}</td>
@@ -105,19 +111,8 @@ export function QuotationsList({ summary }: { summary: QuotationsSummary }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.quotations.length} to {summary.quotations.length} of {summary.quotations.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.quotations.length} onPageChange={setPage} />
     </div>
   )
 }

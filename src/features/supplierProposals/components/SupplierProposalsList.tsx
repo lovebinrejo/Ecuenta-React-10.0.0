@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileBadge, Plus, FileText, CalendarPlus, DollarSign, ListChecks, Search, CalendarDays } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, TwoValueStatCard, fmtZMW } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import { formatMoney } from '../../../utils/format'
 import type { SupplierProposalsSummary } from '../supplierProposals.queries'
 
 const COLUMNS = ['Ref.', 'Third-Party', 'Validation Date', 'Planned Date Of Delivery', 'Amount (Excl. Tax)', 'Amount (Inc. Tax)', 'Author', 'Status']
+const PER_PAGE = 15
 
 export function SupplierProposalsList({ summary }: { summary: SupplierProposalsSummary }) {
+  const [page, setPage] = useState(1)
+  const pageProposals = summary.proposals.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -85,7 +91,7 @@ export function SupplierProposalsList({ summary }: { summary: SupplierProposalsS
                   </td>
                 </tr>
               ) : (
-                summary.proposals.map((p) => (
+                pageProposals.map((p) => (
                   <tr key={p.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{p.ref}</td>
                     <td className="px-4 py-3 text-text!">{p.thirdParty}</td>
@@ -101,19 +107,8 @@ export function SupplierProposalsList({ summary }: { summary: SupplierProposalsS
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.proposals.length} to {summary.proposals.length} of {summary.proposals.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.proposals.length} onPageChange={setPage} />
     </div>
   )
 }

@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileEdit, Plus, ShoppingCart, CalendarPlus, DollarSign, FileText, Search, CalendarDays } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, TwoValueStatCard, fmtZMW } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import { formatMoney } from '../../../utils/format'
 import type { PurchaseOrdersSummary } from '../purchaseOrders.queries'
 
 const COLUMNS = ['Ref', 'Ref. Order Vendor', 'Request Author', 'Third-Party', 'City', 'Zip Code', 'Order Date', 'Planned Date Of Delivery', 'Amount (Excl. Tax)', 'Status', 'Billed']
+const PER_PAGE = 15
 
 export function PurchaseOrdersList({ summary }: { summary: PurchaseOrdersSummary }) {
+  const [page, setPage] = useState(1)
+  const pageOrders = summary.orders.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -85,7 +91,7 @@ export function PurchaseOrdersList({ summary }: { summary: PurchaseOrdersSummary
                   </td>
                 </tr>
               ) : (
-                summary.orders.map((o) => (
+                pageOrders.map((o) => (
                   <tr key={o.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{o.ref}</td>
                     <td className="px-4 py-3 text-text-muted">{o.refOrderVendor}</td>
@@ -104,19 +110,8 @@ export function PurchaseOrdersList({ summary }: { summary: PurchaseOrdersSummary
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.orders.length} to {summary.orders.length} of {summary.orders.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.orders.length} onPageChange={setPage} />
     </div>
   )
 }

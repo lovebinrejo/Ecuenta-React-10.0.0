@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { ShoppingCart, Plus, User, FileText, Check, TriangleAlert, Search, CalendarDays, CreditCard, X, LoaderCircle } from 'lucide-react'
 import { ROUTES } from '../../../routes'
 import { Card, ICON_STYLES, fmtZMW } from '../../../shared/components/dashboard/DashboardKit'
+import { ListPagination } from '../../../shared/components/ListPagination'
 import { formatMoney } from '../../../utils/format'
 import { useMarkInvoicePaid, useRecordInvoicePayment, type InvoiceRow, type InvoicesSummary } from '../invoices.queries'
 
 const COLUMNS = ['Ref', 'Invoice No', 'Invoice Date', 'Third-Party', 'City', 'Payment Type', 'Amount (Incl. Tax)', 'Author', 'Status', 'Zra Status', 'Actions']
+const PER_PAGE = 15
 
 function RecordPaymentForm({ row, onClose }: { row: InvoiceRow; onClose: () => void }) {
   const recordPayment = useRecordInvoicePayment()
@@ -95,6 +97,8 @@ function RowActions({ row, payingRef, onTogglePay }: { row: InvoiceRow; payingRe
 export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
   const [payingRef, setPayingRef] = useState<string | null>(null)
   const payingRow = summary.rows.find((r) => r.ref === payingRef)
+  const [page, setPage] = useState(1)
+  const pageRows = summary.rows.slice((page - 1) * PER_PAGE, page * PER_PAGE)
 
   return (
     <div className="space-y-4">
@@ -189,7 +193,7 @@ export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
                   </td>
                 </tr>
               ) : (
-                summary.rows.map((r) => (
+                pageRows.map((r) => (
                   <tr key={r.ref} className="border-b border-border">
                     <td className="px-4 py-3 text-brand">{r.ref}</td>
                     <td className="px-4 py-3 text-text-muted">{r.invoiceNo}</td>
@@ -210,19 +214,8 @@ export function InvoicesList({ summary }: { summary: InvoicesSummary }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-border text-xs text-text-muted">
-          <span>
-            Showing {summary.rows.length} to {summary.rows.length} of {summary.rows.length} entries
-          </span>
-          <div className="flex items-center gap-1">
-            {['«', '‹', '›', '»'].map((label) => (
-              <button key={label} type="button" disabled title="Not built yet" className="w-7 h-7 rounded-md text-xs border border-border text-text-faint cursor-default">
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
+      <ListPagination page={page} perPage={PER_PAGE} total={summary.rows.length} onPageChange={setPage} />
     </div>
   )
 }

@@ -42,7 +42,7 @@ export function SalesOverview({ summary }: { summary: SalesSummary }) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <InvoiceStatusChart title="Invoice Status Chart" rows={summary.invoiceStatus} />
         <InvoiceStatusTable title="Invoice Amounts By Status" rows={summary.invoiceStatus} />
         <TopProductsTable icon={TrendingUp} title="Top Sold Product's" year={summary.topProductsYear} rows={summary.topProducts} emptyLabel="No sales yet." />

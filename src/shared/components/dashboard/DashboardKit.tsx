@@ -22,7 +22,7 @@ export function fmtLongDate(d: Date) {
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`bg-surface-alt border border-border rounded-xl p-4 ${className}`}>{children}</div>
+  return <div className={`bg-surface-alt border border-border rounded-xl p-4 h-full flex flex-col ${className}`}>{children}</div>
 }
 
 export function SectionHeading({ icon: Icon, children }: { icon: ComponentType<{ size?: number; className?: string }>; children: ReactNode }) {
@@ -175,7 +175,7 @@ export function InvoiceStatusChart({ title, rows }: { title: string; rows: Invoi
   return (
     <Card>
       <SectionHeading icon={PieChartIcon}>{title}</SectionHeading>
-      <div className="h-64 flex items-center justify-center mt-2">
+      <div className="flex-1 min-h-56 flex items-center justify-center mt-2">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
