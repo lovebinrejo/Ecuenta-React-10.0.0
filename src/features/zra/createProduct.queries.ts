@@ -3,14 +3,17 @@ import { api } from '../../api/axios'
 
 // GET /api/zra/asycuda-imports/prefill/ — real, proxies the legacy ecuenta9
 // install's quicklinks_ajax.php?type=get_importproduct action (session-login
-// proxy, same as asycuda-imports/index.php). Only ref/label are pulled out —
-// the rest of what that legacy action returns (country_id, qty_unit,
-// pack_unit) has nowhere to go, since the real create-product endpoint below
-// doesn't accept those fields.
+// proxy, same as asycuda-imports/index.php). Also returns countryId/qtyUnit/
+// packUnit, which that same legacy action derives from the ASYCUDA
+// declaration itself — used to auto-fill Country of Origin/Unit/Packaging
+// Unit exactly like the legacy "Add Products" form does.
 export interface ProductPrefill {
   ref: string
   label: string
   taskCode: string
+  countryId: string
+  qtyUnit: string
+  packUnit: string
 }
 export function useProductPrefill(taskCode: string | null) {
   return useQuery({
@@ -24,41 +27,139 @@ export function useProductPrefill(taskCode: string | null) {
   })
 }
 
-// POST /api/products/list/ — real, the only product-creation endpoint on the
-// ecnta10 backend's bearer-token REST layer (see that file's header comment:
-// built to match a ProductListPage.jsx, not the legacy ZRA "Add Products"
-// form). It only accepts label/type/ref/description/sellingPrice/vatRate/
-// desiredStock — no units, warehouse, IPL/Tourism/Excise codes, barcode, or
-// category assignment; those concepts have no REST endpoint anywhere in this
-// backend (only the legacy session-authenticated custom/zra/ajax_products.php
-// supports them, which isn't reachable from a bearer-token SPA).
-export interface CreateProductInput {
+// GET /api/zra/product-form-options/ — real, direct SQL matching the exact
+// Dolibarr helper functions the legacy "Add Products" form uses
+// (Form::select_country/selectUnits/load_tvacategories,
+// FormProduct::selectWarehouses, FormBarCode::selectBarcodeType,
+// Form::select_all_categories) — see that endpoint's header comment for the
+// per-list source. Loaded once per modal open; these are dictionary tables,
+// effectively static during a session.
+export interface FormOption {
+  value: string
   label: string
-  isService?: boolean
-  ref?: string
+}
+export interface ProductFormOptions {
+  countries: FormOption[]
+  units: FormOption[]
+  packingUnits: FormOption[]
+  vatCategories: FormOption[]
+  iplCategories: FormOption[]
+  tourismCategories: FormOption[]
+  exciseCategories: FormOption[]
+  warehouses: FormOption[]
+  barcodeTypes: FormOption[]
+  categories: FormOption[]
+  accountingAccounts: FormOption[]
+}
+export function useProductFormOptions() {
+  return useQuery({
+    queryKey: ['zra', 'product-form-options'],
+    queryFn: async (): Promise<ProductFormOptions> => {
+      const { data } = await api.get<{ success: boolean; data: ProductFormOptions }>('/zra/product-form-options/')
+      return data.data
+    },
+    staleTime: 1000 * 60 * 10,
+  })
+}
+
+// GET /api/zra/product-classifications/?term= — real, direct SQL against
+// llx_c_productclassification, matching htdocs/custom/zra/
+// productclassification.php's own query (same table, same active=1 + LIKE
+// filter) — backs the Product Classification typeahead.
+export interface ProductClassification {
+  id: string
+  code: string
+  label: string
+}
+export function useProductClassificationSearch(term: string) {
+  return useQuery({
+    queryKey: ['zra', 'product-classifications', term],
+    queryFn: async (): Promise<ProductClassification[]> => {
+      const { data } = await api.get<{ success: boolean; data: ProductClassification[] }>('/zra/product-classifications/', { params: { term } })
+      return data.data
+    },
+    enabled: term.trim().length >= 2,
+    staleTime: 1000 * 30,
+  })
+}
+
+// POST /api/zra/product-categories/create/ — real, proxies THIS install's
+// own product/ajax/products.php action=save_categories (session-login
+// proxy) — the exact target of product_off.php's "Create tag/category"
+// modal (Name/Is Sub Category/Description -> cat_label/prod_cat/
+// cat_description). Reuses that action's own dedupe-by-label + insert logic.
+export interface CreateCategoryInput {
+  label: string
   description?: string
-  sellingPrice?: number
-  vatRate?: number
-  desiredStock?: number
+  parentId?: string
+}
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: CreateCategoryInput) => {
+      const { data } = await api.post<{ success: boolean; data: { categoryId: string; label: string } }>('/zra/product-categories/create/', input)
+      return data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['zra', 'product-form-options'] })
+    },
+  })
+}
+
+// POST /api/products/create-full/ — real, proxies THIS install's own
+// custom/zra/ajax_products.php addproducts action (session-login proxy,
+// api/_local_zra_proxy.php) — the actual legacy "Add Products" form target,
+// which both inserts the product row AND (when MAIN_MODULE_ZRA is enabled)
+// pushes it live to the real ZRA gateway in the same request. Field names
+// here match that endpoint's expected JSON body exactly.
+export interface CreateProductFullInput {
+  ref: string
+  label: string
+  prodType?: 0 | 1
+  statut: string
+  statutBuy: string
+  finished: string
+  itemClassification: string
+  countryId: string
+  warehouseId?: string 
+  stockAlertLimit?: string
+  desiredStock?: string
+  units: string
+  packing: string
+  price: string
+  priceBaseType?: 'HT' | 'TTC'
+  priceMin?: string
+  vatCategory?: string
+  iplCategory?: string
+  tourismCategory?: string
+  exciseCategory?: string
+  barcodeType?: string
+  barcode?: string
+  weight?: string
+  length?: string
+  width?: string
+  height?: string
+  surface?: string
+  volume?: string
+  accountancySell?: string
+  accountancySellExport?: string
+  accountancyBuy?: string
+  accountancyBuyExport?: string
+  categories?: string[]
+  isWebsite?: boolean
+  taskCode?: string
 }
 
 export function useCreateProduct() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (input: CreateProductInput) => {
-      const { data } = await api.post<{ success: boolean; data: { id: number; ref: string } }>('/products/list/', {
-        label: input.label,
-        type: input.isService ? 1 : 0,
-        ref: input.ref || undefined,
-        description: input.description || undefined,
-        sellingPrice: input.sellingPrice,
-        vatRate: input.vatRate,
-        desiredStock: input.desiredStock,
-      })
+    mutationFn: async (input: CreateProductFullInput) => {
+      const { data } = await api.post<{ success: boolean; data: { status: number } }>('/products/create-full/', input)
       return data.data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.invalidateQueries({ queryKey: ['zra'] })
     },
   })
 }

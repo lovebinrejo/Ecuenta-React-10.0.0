@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthContext'
 import { useEntities } from '../../features/settings/settings.queries'
 import logo from '../../assets/Ecuenta_logo.png'
-import loginArt from '../../assets/login-graphic.png'
 
 /* ---------------------------------- icons --------------------------------- */
 
@@ -50,22 +49,6 @@ function CircuitPattern({ className = '' }: { className?: string }) {
     </svg>
   )
 }
-
-// Each glow's color and icon are matched to its own badge (Analytics=gold,
-// Automation=copper, Accounting=burnt-orange, Operations=olive,
-// Messaging=violet, Banking=crimson, Inventory=green, CRM=blue) and pushed
-// more saturated/distinct than the original set, since the copper/tan/olive
-// trio used to sit too close together to tell apart at a glance.
-const BADGE_GLOWS: { top: string; left: string; color: string; delay: string; icon: string }[] = [
-  { top: '17.2%', left: '55.6%', color: '#fbbf24', delay: '0s', icon: '📊' },
-  { top: '27.1%', left: '76.0%', color: '#c2761f', delay: '0.3s', icon: '⚙️' },
-  { top: '49.7%', left: '83.9%', color: '#92400e', delay: '0.6s', icon: '🧾' },
-  { top: '72.3%', left: '76.0%', color: '#65a30d', delay: '0.9s', icon: '🛠️' },
-  { top: '83.2%', left: '55.6%', color: '#7c3aed', delay: '1.2s', icon: '💬' },
-  { top: '72.3%', left: '26.1%', color: '#dc2626', delay: '1.5s', icon: '🏦' },
-  { top: '49.7%', left: '17.0%', color: '#16a34a', delay: '1.8s', icon: '📦' },
-  { top: '27.1%', left: '26.1%', color: '#1d4ed8', delay: '2.1s', icon: '🤝' },
-]
 
 /* ---------------------------------- form ---------------------------------- */
 
@@ -217,45 +200,10 @@ export function LoginModule() {
       <CircuitPattern className="absolute -right-6 -bottom-6 h-48 w-48 -scale-x-100 -scale-y-100 text-slate-400/30" />
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="relative w-full max-w-4xl">
-          <div className="pointer-events-none absolute -bottom-3 -right-3 h-8 w-8 rotate-45 rounded-md bg-white shadow-md lg:hidden" />
-
-          <div className="flex w-full flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl lg:flex-row">
-            {/* graphic panel */}
-            <div className="relative order-1 overflow-hidden lg:order-2 lg:w-[57%]">
-              <img src={loginArt} alt="" className="h-64 w-full object-cover lg:h-full" />
-              {BADGE_GLOWS.map((badge, index) => (
-                <span
-                  key={index}
-                  className="pointer-events-none absolute hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[3px] lg:block lg:h-[3.6rem] lg:w-[3.6rem] animate-[badge-glow_2.6s_ease-in-out_infinite]"
-                  style={{
-                    top: badge.top,
-                    left: badge.left,
-                    background: `radial-gradient(circle, transparent 58%, ${badge.color} 78%, transparent 100%)`,
-                    animationDelay: badge.delay,
-                  }}
-                />
-              ))}
-              {BADGE_GLOWS.map((badge, index) => (
-                <span
-                  key={`badge-icon-${index}`}
-                  aria-hidden="true"
-                  className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] lg:block animate-[badge-pop_2.6s_ease-in-out_infinite]"
-                  style={{
-                    top: badge.top,
-                    left: badge.left,
-                    marginTop: '-1.7rem',
-                    marginLeft: '1.7rem',
-                    animationDelay: badge.delay,
-                  }}
-                >
-                  {badge.icon}
-                </span>
-              ))}
-            </div>
-
+        <div className="relative w-full max-w-md">
+          <div className="flex w-full flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl">
             {/* form panel */}
-            <div className="order-2 flex flex-col justify-center px-8 py-8 sm:px-10 lg:order-1 lg:w-[43%] lg:py-10">
+            <div className="flex flex-col justify-center px-8 py-8 sm:px-10 lg:py-10">
               <div className="mb-2 flex -translate-y-[20%] justify-center">
                 <img src={logo} alt="ECUENTA - Financial Accounting CRM" className="h-10 w-auto sm:h-12 lg:h-14" />
               </div>

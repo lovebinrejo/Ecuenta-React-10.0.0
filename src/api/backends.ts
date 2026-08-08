@@ -7,10 +7,11 @@ export const BACKEND_URLS = {
   local: 'http://localhost/ecnta10/htdocs',
   demoV2: 'https://demov2.ecuenta.app',
   demo1: 'https://demo1.ecuenta.online',
+  live: 'http://192.168.1.10'
 } as const
 
 // <-- CHANGE THIS, then restart the dev server.
-export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'local'
+export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'live'
     
 // Some API responses (e.g. GET /user/'s `photo`) return a root-relative path
 // straight from PHP (DOL_URL_ROOT + '/viewimage.php?...'), not a full URL.
