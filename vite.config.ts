@@ -19,7 +19,14 @@ export default defineConfig({
     // cookie Dolibarr sets on them never gets sent back.
     proxy: {
       '/api': { target: BACKEND_URLS[ACTIVE_BACKEND], changeOrigin: true },
-      '/custom': { target: BACKEND_URLS[ACTIVE_BACKEND], changeOrigin: true },
+      // Regex, not a plain string: Vite/http-proxy-middleware matches plain
+      // string keys by simple prefix, so a bare '/custom' also swallowed the
+      // app's own /customers, /customers/create, /customers/:id,
+      // /customer-groups, /customers/tags routes on direct navigation or a
+      // hard refresh (never on in-app SPA clicks, since React Router
+      // intercepts those before any request — that's why this went
+      // unnoticed). Anchored to match only /custom or /custom/... .
+      '^/custom(/|$)': { target: BACKEND_URLS[ACTIVE_BACKEND], changeOrigin: true },
       '/takeposnew': { target: BACKEND_URLS[ACTIVE_BACKEND], changeOrigin: true },
       '/takepos': { target: BACKEND_URLS[ACTIVE_BACKEND], changeOrigin: true },
     },

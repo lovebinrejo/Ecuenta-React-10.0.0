@@ -31,6 +31,12 @@ export function useAppMenu() {
     queryKey: ['app-menu'],
     queryFn: async (): Promise<AppMenuResponse> => {
       const { data } = await api.get<{ success: boolean; data: AppMenuResponse }>('/menu/')
+      // A queryFn must never resolve with undefined — React Query treats
+      // that as a bug and logs "Query data cannot be undefined" on every
+      // retry. A response shaped like { success: false, ... } (no `data`
+      // field) hit that exact case here; throwing puts the query into its
+      // normal isError state instead.
+      if (!data?.data) throw new Error('Menu response did not include data')
       return data.data
     },
     staleTime: 1000 * 60 * 5,
