@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppShell } from './app/AppShell'
 import { queryClient } from './api/queryClient'
 import { ThemeProvider } from './context/ThemeContext'
+import { SidebarStyleProvider } from './context/SidebarStyleContext'
 import { AuthProvider } from './features/auth/AuthContext'
 import { ProtectedRoute } from './features/auth/ProtectedRoute'
 import { LoginModule } from './modules/auth/LoginModule'
@@ -18,6 +19,11 @@ import { ZraPendingSalesModule } from './modules/zra/ZraPendingSalesModule'
 import { ZraPendingPurchaseModule } from './modules/zra/ZraPendingPurchaseModule'
 import { ZraUnuploadedStockModule } from './modules/zra/ZraUnuploadedStockModule'
 import { ZraUnuploadProductsModule } from './modules/zra/ZraUnuploadProductsModule'
+import { ZraSalesLookupModule } from './modules/zra/ZraSalesLookupModule'
+import { ZraCustomerInfoModule } from './modules/zra/ZraCustomerInfoModule'
+import { ZraItemDetailsModule } from './modules/zra/ZraItemDetailsModule'
+import { ZraStockListModule } from './modules/zra/ZraStockListModule'
+import { AsycudaPurchaseInvoiceModule } from './modules/zra/AsycudaPurchaseInvoiceModule'
 import { SalesModule } from './modules/sales/SalesModule'
 import { PurchasesModule } from './modules/purchases/PurchasesModule'
 import { WarehousesModule } from './modules/warehouses/WarehousesModule'
@@ -46,6 +52,9 @@ import { SupplierProposalCreateModule } from './modules/supplierProposals/Suppli
 import { ProductsListModule } from './modules/products/ProductsListModule'
 import { ServicesListModule } from './modules/products/ServicesListModule'
 import { AgendaModule } from './modules/agenda/AgendaModule'
+import PosLayout from './pos/layouts/DashboardLayout'
+import PosHome from './pos/features/pos/Components/PosHome'
+import PosProductsPage from './pos/features/products/Components/ProductsPage'
 import { ROUTES } from './routes'
 
 function AppLayout() {
@@ -60,11 +69,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <SidebarStyleProvider>
         <AuthProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginModule />} />
               <Route element={<ProtectedRoute />}>
+              {/* Full-bleed, own chrome (PosNavbar/PosSidebar) — not wrapped in
+                  AppLayout's admin Navbar/Sidebar, same as pos_standalone was
+                  full-screen on its own. See src/pos/layouts/DashboardLayout.jsx. */}
+              <Route path="/pos" element={<PosLayout />}>
+                <Route index element={<PosHome />} />
+                <Route path="products" element={<PosProductsPage />} />
+              </Route>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardModule />} />
@@ -77,6 +94,11 @@ function App() {
                 <Route path={ROUTES.zraPendingPurchase} element={<ZraPendingPurchaseModule />} />
                 <Route path={ROUTES.zraUnuploadedStockMovements} element={<ZraUnuploadedStockModule />} />
                 <Route path={ROUTES.zraUnuploadedProducts} element={<ZraUnuploadProductsModule />} />
+                <Route path={ROUTES.zraInvoiceDetails} element={<ZraSalesLookupModule />} />
+                <Route path={ROUTES.zraCustomerInfo} element={<ZraCustomerInfoModule />} />
+                <Route path={ROUTES.zraItemDetails} element={<ZraItemDetailsModule />} />
+                <Route path={ROUTES.zraStockList} element={<ZraStockListModule />} />
+                <Route path={ROUTES.asycudaPurchase} element={<AsycudaPurchaseInvoiceModule />} />
                 <Route path={ROUTES.salesDashboard} element={<SalesModule />} />
                 <Route path={ROUTES.purchasesDashboard} element={<PurchasesModule />} />
                 <Route path={ROUTES.warehouseDashboard} element={<WarehousesModule />} />
@@ -113,6 +135,7 @@ function App() {
             </Routes>
           </BrowserRouter>
         </AuthProvider>
+        </SidebarStyleProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Its own separate git repo (its own remotes/history) — must never be
+# git-added from here, or it becomes a broken gitlink instead of real
+# content. POS itself now lives in src/pos/, bundled into this app; this
+# directory is dormant.
+pos_standalone - v1/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
