@@ -11,7 +11,7 @@ export const BACKEND_URLS = {
 } as const
 
 // <-- CHANGE THIS, then restart the dev server.
-export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'live'
+export const ACTIVE_BACKEND: keyof typeof BACKEND_URLS = 'demo1'
     
 // Some API responses (e.g. GET /user/'s `photo`) return a root-relative path
 // straight from PHP (DOL_URL_ROOT + '/viewimage.php?...'), not a full URL.
